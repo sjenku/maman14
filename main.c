@@ -1,10 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+#include "symbolList.h"
 
 void readPrintLineFile(int argc, char *argv[])
 {
-    char *numCopy = "1";
     size_t size = 10;
     char *string = (char *)malloc(size);
     for (int i = 1; i < argc; i++)
@@ -12,10 +11,6 @@ void readPrintLineFile(int argc, char *argv[])
         printf("The Iteretion %d out of %d\n", i, argc);
         char *filename = argv[i];
         FILE *f = fopen(filename, "r");
-        char fCopyName[12];
-        snprintf(fCopyName, 12, "copy%d.txt", i);
-        printf("fcopy=> %s", fCopyName);
-        FILE *fCopy = fopen(fCopyName, "w");
         if (f != NULL)
         {
             int bytes_read;
@@ -25,13 +20,9 @@ void readPrintLineFile(int argc, char *argv[])
             {
                 //write to file
                 printf("%s", string);
-                fputs(string, fCopy);
             }
             fclose(f);
         }
-        if (fCopy != NULL)
-            fclose(fCopy);
-        numCopy++;
     }
     free(string);
 }
@@ -56,8 +47,14 @@ void printBinaryRepresentation()
 
 int main(int argc, char *argv[])
 {
-    printf("number of argc => %d\n", argc);
-    // readPrintLineFile(argc, argv);
-    // printBinaryRepresentation();
+    /*Create Symbols List*/
+    symbolsList *symbols = (symbolsList *)malloc(sizeof(symbolsList)); //TODO:Free malloc
+
+    addSymbol(symbols, "Jhon", 100);
+    addSymbol(symbols, "Jessica", 104);
+    addSymbol(symbols, "George", 112);
+
+    printSymbolsFrom(symbols->head);
+
     return 0;
 }
