@@ -4,6 +4,6 @@
 #define SUCCESS 1
 #define FAILURE 0
 
-void logger(char *operation);
+void logger(const char *format, ...);
 
 #endif
