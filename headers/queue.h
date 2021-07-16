@@ -15,5 +15,6 @@ typedef struct queue
 
 int enqueue(queue *queue, char *word);
 void display(node *headP);
+void enqueueWordsFromString(queue *queue, char *str);
 
 #endif

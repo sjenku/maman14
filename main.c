@@ -26,11 +26,7 @@ int main(int argc, char *argv[])
     // isOperationExist("blabla") ? printf("blabla exist\n") : printf("blabla not exist");
 
     queue *q = (queue *)malloc(sizeof(queue));
-    enqueue(q, "Hello");
-    enqueue(q, "Word");
-    enqueue(q, "Save");
-    display(q->headP);
-    display(q->tailP);
+    enqueueWordsFromString(q, "    Hello   World This is    terrific day     ");
     display(q->headP);
 
     return 0;

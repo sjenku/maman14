@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "inputhandler.h": "c",
-        "tools.h": "c"
+        "tools.h": "c",
+        "queue.h": "c"
     }
 }
