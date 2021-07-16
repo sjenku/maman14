@@ -13,7 +13,11 @@ typedef struct queue
     node *tailP;
 } queue;
 
+queue *initQueue();
 int enqueue(queue *queue, char *word);
+int dequeue(queue *q);
+int dequeueAll(queue *q);
+int peek(queue *q, char **str);
 void display(node *headP);
 void enqueueWordsFromString(queue *queue, char *str);
 

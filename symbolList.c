@@ -17,9 +17,9 @@ int addSymbol(symbolsList *symbolList, char *name, int adderss)
     else if (symbolList->head == NULL)
     {
         /*Create symbol node*/
+        symbolNode *sNode;
         logger(L, "Create symbol node");
-        symbolNode *sNode = (symbolNode *)malloc(sizeof(symbolNode));
-
+        sNode = (symbolNode *)malloc(sizeof(symbolNode));
         /*Insert Values of Adress and name*/
         logger(L, "Insert Values of Adress and name");
         sNode->adrress = adderss;
@@ -33,9 +33,11 @@ int addSymbol(symbolsList *symbolList, char *name, int adderss)
     }
     else
     {
+        symbolNode *tmp;
+        symbolNode *sNode;
+
         logger(L, "Init tmp");
-        /*Set tmp to point to the head of the list*/
-        symbolNode *tmp = symbolList->head;
+        tmp = symbolList->head;
 
         /*Iterate to the last Node*/
         logger(L, "Iterate list");
@@ -44,10 +46,9 @@ int addSymbol(symbolsList *symbolList, char *name, int adderss)
             logger(L, "iterate next");
             tmp = tmp->next;
         }
-
         /*Create new symbol */
         logger(L, "Create new symbol");
-        symbolNode *sNode = (symbolNode *)malloc(sizeof(symbolNode));
+        sNode = (symbolNode *)malloc(sizeof(symbolNode));
         sNode->adrress = adderss;
         sNode->name = name;
 
@@ -72,4 +73,15 @@ void printSymbolsFrom(symbolNode *head)
             tmp = tmp->next;
         }
     }
+}
+
+symbolsList *initSymbolsList()
+{
+    symbolsList *newList;
+    newList = (symbolsList *)malloc(sizeof(symbolsList));
+    if (newList == NULL)
+        return NULL;
+
+    newList->head = NULL;
+    return newList;
 }

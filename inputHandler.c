@@ -1,59 +1,44 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <ctype.h>
 #include "headers/inputHandler.h"
 #include "headers/tools.h"
 
-int isCommentLine(char *line)
+void runRulessOnLinesOfFile(int argc, char *argv[], int numOfRules, int (*rulesArr[])(char *))
 {
-    /*Temperory char holder of each char in the line*/
-    char *ch;
-    /*Iterate threw the line*/
-    for (ch = line; *ch != '\0'; ch++)
-    {
-        if (!isspace(*ch))
-            /*Checking if the ';' char in the begining
-         of the line that indecates that is a comment*/
-            if (*ch == ';')
-            {
-                logger(I, "Is comment Line =>%s\n", line);
-                return SUCCESS;
-            }
-    }
-    return FAILURE;
-}
+    int i, j;
+    char *filename;
+    FILE *f;
+    size_t size = MAX_CHARS_INLINE;
+    char *line = (char *)malloc(size);
 
-int isOperationLine(const char *line)
-{
-}
-
-void readPrintLineFile(int argc, char *argv[])
-{
-    size_t size = 10;
-    char *string = (char *)malloc(size);
-    for (int i = 1; i < argc; i++)
+    /*Iterate threw each file*/
+    for (i = 1; i < argc; i++)
     {
-        logger(I, "The Iteretion %d out of %d\n", i, argc);
-        char *filename = argv[i];
-        FILE *f = fopen(filename, "r");
+        logger(I, "The Iteretion %d out of %d", i, argc - 1);
+        filename = argv[i];
+        f = fopen(filename, "r");
         if (f != NULL)
         {
-            int bytes_read;
-            logger(L, "File is reading\n");
-            logger(I, "The File Name is => %s\n", filename);
-            for (int j = 1; (bytes_read = getline(&string, &size, f)) != -1; j++)
+            logger(L, "File is reading");
+            logger(I, "The File Name is => %s", filename);
+            /*handle each line in the file*/
+            /* while (fgets(line, size, f) != NULL) */
+            while (getline(&line, &size, f) != -1)
             {
-                //write to file
-                logger(I, "%s", string);
-                isCommentLine(string);
+                line[strlen(line) - 1] = '\0'; /*Set the last char to null character instead of the newline char*/
+                logger(I, "the line is => %s", line);
+                for (j = 0; j < numOfRules; j++)
+                    rulesArr[j](line);
             }
             fclose(f);
         }
     }
-    free(string);
+    free(line);
 }
 
-// void printBinaryRepresentation()
+/* void printBinaryRepresentation()
 // {
 //     int a[10], n, i;
 //     printf("Enter the number to convert: ");
@@ -70,3 +55,4 @@ void readPrintLineFile(int argc, char *argv[])
 //     }
 //     printf("\n");
 // }
+*/

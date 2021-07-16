@@ -10,6 +10,6 @@ typedef struct operetion
 } operetion;
 
 void printOperetions();
-int isOperationExist(const char *operationName);
+int isOperationValid(const char *operationName);
 
 #endif

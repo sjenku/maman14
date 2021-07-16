@@ -18,5 +18,6 @@ typedef struct symbolsList
 
 int addSymbol(symbolsList *symbolList, char *name, int adderss);
 void printSymbolsFrom(symbolNode *head);
+symbolsList *initSymbolsList();
 
 #endif

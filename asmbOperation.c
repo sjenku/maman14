@@ -38,21 +38,23 @@ int totalOperations()
 
 void printOperetions()
 {
+    int i, length;
     operetion *oprP;
-    int length = totalOperations();
+    length = totalOperations();
     logger(L, "Length Operetions => %d", length);
-    for (int i = 0; i < length; i++)
+    for (i = 0; i < length; i++)
     {
         oprP = &(operations[i]);
         logger(I, "Name:%s", oprP->name);
     }
 }
 
-/*Compare if operationName is equal to one of the presaved operations*/
-int isOperationExist(const char *operationName)
+/*Check if operationName is valid comparing with  presaved operations names*/
+int isOperationValid(const char *operationName)
 {
+    int i;
     int length = totalOperations();
-    for (int i = 0; i < length; i++)
+    for (i = 0; i < length; i++)
     {
         if (strcmp(operations[i].name, operationName) == 0)
             return SUCCESS;
