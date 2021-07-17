@@ -23,7 +23,6 @@ int enqueue(queue *queue, char *word)
     newNode->next = NULL;
     if (queue->headP == NULL)
     {
-        logger(I, "Init the first elemnt with => %s", word);
         /*Insert to the queue*/
         queue->headP = newNode;
         queue->tailP = newNode;
@@ -31,7 +30,6 @@ int enqueue(queue *queue, char *word)
     }
     else
     {
-        logger(I, "Insert to the end of the queue new element with => %s", word);
         /*Insert to the queue*/
         queue->tailP->next = newNode;
         queue->tailP = newNode;
@@ -39,6 +37,15 @@ int enqueue(queue *queue, char *word)
     }
 
     return FAILURE;
+}
+
+/*Return the size of the string that saved in the first element in the queue
+(note:it's count also the null character)*/
+size_t sizeDataFirstElement(queue *q)
+{
+    if (q == NULL || q->headP == NULL || q->headP->data == NULL)
+        return 0;
+    return strlen(q->headP->data);
 }
 
 void display(node *headP)
@@ -72,7 +79,6 @@ void enqueueWordsFromString(queue *queue, char *str)
                 /*copy the word from the str with relative indexes*/
                 strncpy(newWord, str + i - charCounter, charCounter + 1);
                 enqueue(queue, newWord);
-                logger(L, "Word is fetched is => %s", newWord);
                 /*after finish adding the word , zero the char counter*/
                 charCounter = 0;
                 /*free memory*/

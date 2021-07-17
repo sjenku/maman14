@@ -1,7 +1,9 @@
 #ifndef _ENGINE_COMPILE
 #define _ENGINE_COMPILE
-
 #define TOTAL_RULES 1
+
+#include "queue.h"
+#include "symbolList.h"
 
 typedef struct engineDB
 {
@@ -14,8 +16,13 @@ void runEngine(int argc, char *argv[]);
 
 /*this function is initialize the Data Base for the engine*/
 engineDB *initEngineDB();
+/*this function return the data base*/
+engineDB *getEngineDB();
+
+/*remove all elements of the engine data base and free memory*/
+void destroyEngineDB(engineDB *db);
 
 /*TODO:JUST FOR DEBUGGING-NEED TO BE DELETED FROM THE CLIENT*/
-void engineWorkFlow(char *line);
+void engineWorkFlowForLine(char *line, int lineNumber, char *filename);
 
 #endif

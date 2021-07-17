@@ -21,5 +21,6 @@ int dequeueAll(queue *q);
 int destroyQueue(queue *q);
 void display(node *headP);
 int peek(queue *q, char **str);
+size_t sizeDataFirstElement(queue *q);
 
 #endif

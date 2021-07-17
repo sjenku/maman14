@@ -5,9 +5,9 @@
 #include "headers/inputHandler.h"
 #include "headers/tools.h"
 
-void runRulessOnLinesOfFile(int argc, char *argv[], int numOfRules, int (*rulesArr[])(char *))
+void runRulessOnLinesOfFile(int argc, char *argv[], int numOfRules, void (*rulesArr[])(char *, int, char *))
 {
-    int i, j;
+    int i, j, lineNumber;
     char *filename;
     FILE *f;
     size_t size = MAX_CHARS_INLINE;
@@ -24,13 +24,15 @@ void runRulessOnLinesOfFile(int argc, char *argv[], int numOfRules, int (*rulesA
             logger(L, "File is reading");
             logger(I, "The File Name is => %s", filename);
             /*handle each line in the file*/
-            /* while (fgets(line, size, f) != NULL) */
+            lineNumber = 1;
             while (getline(&line, &size, f) != -1)
             {
                 line[strlen(line) - 1] = '\0'; /*Set the last char to null character instead of the newline char*/
                 logger(I, "the line is => %s", line);
+                /*Implement all the functions that in array on the line*/
                 for (j = 0; j < numOfRules; j++)
-                    rulesArr[j](line);
+                    rulesArr[j](line, lineNumber, filename);
+                lineNumber++;
             }
             fclose(f);
         }

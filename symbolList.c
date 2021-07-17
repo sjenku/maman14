@@ -48,7 +48,7 @@ int addSymbol(symbolsList *symbolList, char *name, int adderss) /*TODO:Optemize 
             tmp = tmp->next;
         }
         /*Insert the new symbol's node to the end of the list */
-        logger(L, "insert the next symbol to the list => %s", sNode->name);
+        logger(I, "insert the next symbol to the list => %s", sNode->name);
         tmp->next = sNode;
         return SUCCESS;
     }
@@ -65,7 +65,7 @@ void printSymbolsFrom(symbolNode *head)
         symbolNode *tmp = head;
         while (tmp != NULL)
         {
-            logger(I, "[Symbol]=>[Name]:%s,[Address]:%d", tmp->name, tmp->adrress);
+            logger(D, "[Symbol]=>[Name]:%s,[Address]:%d", tmp->name, tmp->adrress);
             tmp = tmp->next;
         }
     }
@@ -86,7 +86,7 @@ symbolsList *initSymbolsList()
 void destorySymbolList(symbolsList *symbolsList)
 {
     symbolNode *tmp;
-    if (symbolsList == NULL || symbolsList->head == NULL)
+    if (symbolsList == NULL)
         return;
 
     tmp = symbolsList->head;
