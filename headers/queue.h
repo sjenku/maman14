@@ -15,10 +15,11 @@ typedef struct queue
 
 queue *initQueue();
 int enqueue(queue *queue, char *word);
+void enqueueWordsFromString(queue *queue, char *str);
 int dequeue(queue *q);
 int dequeueAll(queue *q);
-int peek(queue *q, char **str);
+int destroyQueue(queue *q);
 void display(node *headP);
-void enqueueWordsFromString(queue *queue, char *str);
+int peek(queue *q, char **str);
 
 #endif

@@ -153,4 +153,9 @@ int dequeueAll(queue *q)
 int destroyQueue(queue *q)
 {
     /*TODO:FINISH*/
+    if (q == NULL)
+        return FAILURE;
+    dequeueAll(q);
+    free(q);
+    return SUCCESS;
 }

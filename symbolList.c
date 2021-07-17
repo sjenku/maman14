@@ -1,30 +1,33 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "headers/symbolList.h"
 #include "headers/tools.h"
 
-int addSymbol(symbolsList *symbolList, char *name, int adderss)
+int addSymbol(symbolsList *symbolList, char *name, int adderss) /*TODO:Optemize in one block make new node*/
 {
+    symbolNode *sNode;
+    symbolNode *tmp;
     /*Wrong Input*/
-    logger(L, "symbolList == NULL");
     if (symbolList == NULL)
     {
         logger(L, "FAILURE");
         return FAILURE;
     }
-    /*Empty Head of Linked List*/
-    else if (symbolList->head == NULL)
-    {
-        /*Create symbol node*/
-        symbolNode *sNode;
-        logger(L, "Create symbol node");
-        sNode = (symbolNode *)malloc(sizeof(symbolNode));
-        /*Insert Values of Adress and name*/
-        logger(L, "Insert Values of Adress and name");
-        sNode->adrress = adderss;
-        sNode->name = name;
+    /*Create symbol node*/
+    logger(L, "Create symbol node");
+    sNode = (symbolNode *)malloc(sizeof(symbolNode));
+    /*Insert Values of Adress and name*/
+    logger(L, "Insert Values of Adress and name");
+    sNode->adrress = adderss;
+    sNode->name = (char *)malloc(sizeof(name)); /*NOTE:Will be free in 'DestroySymbolList' method*/
+    strcpy(sNode->name, name);
+    sNode->next = NULL;
 
+    /*Empty Head of Linked List*/
+    if (symbolList->head == NULL)
+    {
         /*Insert the new symbol to head of the list*/
         logger(L, "Insert the new symbol to head of the list");
         symbolList->head = sNode;
@@ -33,11 +36,9 @@ int addSymbol(symbolsList *symbolList, char *name, int adderss)
     }
     else
     {
-        symbolNode *tmp;
-        symbolNode *sNode;
-
         logger(L, "Init tmp");
         tmp = symbolList->head;
+        logger(L, "tmp => %s", tmp->name);
 
         /*Iterate to the last Node*/
         logger(L, "Iterate list");
@@ -46,13 +47,8 @@ int addSymbol(symbolsList *symbolList, char *name, int adderss)
             logger(L, "iterate next");
             tmp = tmp->next;
         }
-        /*Create new symbol */
-        logger(L, "Create new symbol");
-        sNode = (symbolNode *)malloc(sizeof(symbolNode));
-        sNode->adrress = adderss;
-        sNode->name = name;
-
         /*Insert the new symbol's node to the end of the list */
+        logger(L, "insert the next symbol to the list => %s", sNode->name);
         tmp->next = sNode;
         return SUCCESS;
     }
@@ -67,9 +63,9 @@ void printSymbolsFrom(symbolNode *head)
     {
         /*Iterate threw the list begining from the node been givin in the param*/
         symbolNode *tmp = head;
-        while (tmp != NULL && tmp->next != NULL)
+        while (tmp != NULL)
         {
-            logger(I, "[Symbol]=>[Name]:%s,[Address]:%d\n", tmp->name, tmp->adrress);
+            logger(I, "[Symbol]=>[Name]:%s,[Address]:%d", tmp->name, tmp->adrress);
             tmp = tmp->next;
         }
     }
@@ -84,4 +80,23 @@ symbolsList *initSymbolsList()
 
     newList->head = NULL;
     return newList;
+}
+
+void destorySymbolList(symbolsList *symbolsList)
+{
+    symbolNode *tmp;
+    if (symbolsList == NULL || symbolsList->head == NULL)
+        return;
+
+    tmp = symbolsList->head;
+    while (tmp != NULL)
+    {
+        if (tmp->name != NULL)
+            free(tmp->name);
+
+        symbolsList->head = symbolsList->head->next;
+        free(tmp);
+        tmp = symbolsList->head;
+    }
+    free(symbolsList);
 }

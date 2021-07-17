@@ -8,6 +8,8 @@
 #include "headers/queue.h"
 #include "headers/engineCompile.h"
 
+void check_leaks();
+
 int main(int argc, char *argv[])
 {
 
@@ -30,10 +32,12 @@ int main(int argc, char *argv[])
      isOperationExist("blabla") ? printf("blabla exist\n") : printf("blabla not exist");
     */
     /*runEngine(argc, argv);*/
-    queue *q = initQueue();
-    enqueue(q, "Hello");
-    enqueue(q, "World");
-    enqueue(q, "People");
-
+    symbolsList *symbolsList;
+    symbolsList = initSymbolsList();
+    addSymbol(symbolsList, "Add", 100);
+    addSymbol(symbolsList, "sdsdsd", 200);
+    printSymbolsFrom(symbolsList->head);
+    destorySymbolList(symbolsList);
+    check_leaks();
     return 0;
 }
