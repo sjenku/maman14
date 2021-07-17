@@ -15,4 +15,7 @@ void runEngine(int argc, char *argv[]);
 /*this function is initialize the Data Base for the engine*/
 engineDB *initEngineDB();
 
+/*TODO:JUST FOR DEBUGGING-NEED TO BE DELETED FROM THE CLIENT*/
+void engineWorkFlow(char *line);
+
 #endif

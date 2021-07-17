@@ -32,12 +32,7 @@ int main(int argc, char *argv[])
      isOperationExist("blabla") ? printf("blabla exist\n") : printf("blabla not exist");
     */
     /*runEngine(argc, argv);*/
-    symbolsList *symbolsList;
-    symbolsList = initSymbolsList();
-    addSymbol(symbolsList, "Add", 100);
-    addSymbol(symbolsList, "sdsdsd", 200);
-    printSymbolsFrom(symbolsList->head);
-    destorySymbolList(symbolsList);
-    check_leaks();
+    engineWorkFlow("hello:Wor qbcs");
+    /*check_leaks();*/
     return 0;
 }

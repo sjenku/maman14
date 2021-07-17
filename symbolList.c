@@ -82,6 +82,7 @@ symbolsList *initSymbolsList()
     return newList;
 }
 
+/*Remove all the elements and Release all the memory*/
 void destorySymbolList(symbolsList *symbolsList)
 {
     symbolNode *tmp;

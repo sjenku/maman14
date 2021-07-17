@@ -70,7 +70,7 @@ void enqueueWordsFromString(queue *queue, char *str)
                 /*Creating new word buffer,note:the memory will be free in the dequeue method.*/
                 char *newWord = (char *)malloc(charCounter + 1);
                 /*copy the word from the str with relative indexes*/
-                strncpy(newWord, str + i - charCounter, charCounter);
+                strncpy(newWord, str + i - charCounter, charCounter + 1);
                 enqueue(queue, newWord);
                 logger(L, "Word is fetched is => %s", newWord);
                 /*after finish adding the word , zero the char counter*/

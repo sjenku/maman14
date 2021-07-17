@@ -7,19 +7,19 @@
 #include "headers/symbolList.h"
 #include "headers/engineCompile.h"
 
-int isCommentLine(char *line)
+int isComment(char *word)
 {
     /*Temperory char holder of each char in the line*/
     char *ch;
     /*Iterate threw the line*/
-    for (ch = line; *ch != '\0'; ch++)
+    for (ch = word; *ch != '\0'; ch++)
     {
         if (!isspace(*ch))
             /*Checking if the ';' char in the begining
          of the line that indecates that is a comment*/
             if (*ch == ';')
             {
-                logger(I, "Is a comment Line => %s", line);
+                logger(I, "Is a comment word => %s", word);
                 return SUCCESS;
             }
     }
@@ -28,11 +28,36 @@ int isCommentLine(char *line)
 
 int isOperationLine(const char *line)
 {
-    logger(L, "isOperetionLine");
     /*TODO:*/
+
     return FAILURE;
 }
 
+int isSymbol(char *word)
+{
+    char *ch;
+    if (word == NULL)
+        return FAILURE;
+    for (ch = word; (*ch) != '\0'; ch++)
+    {
+        logger(I, "%c", ch);
+    }
+
+    return SUCCESS;
+}
+
+/*this function set the workflow that actually the algorithm that handle each line*/
+void engineWorkFlow(char *line)
+{
+    queue *tmpQueue;
+    char *word;
+    tmpQueue = initQueue();
+    /*seperate the line to words*/
+    enqueueWordsFromString(tmpQueue, line);
+    word = (char *)malloc(sizeof(10)); /*TODO:HANDLE BETTER APPROACH*/
+    // peek(tmpQueue, &word);
+    // isSymbol(word);
+}
 void runEngine(int argc, char *argv[])
 {
     int (*rulesArr[TOTAL_RULES])(char *); /*Array of functions(Rules) applied to the each line*/
@@ -47,7 +72,7 @@ void runEngine(int argc, char *argv[])
     {
         logger(I, "Data base setted");
     }
-    rulesArr[0] = isCommentLine;
+    rulesArr[0] = isComment;
     runRulessOnLinesOfFile(argc, argv, TOTAL_RULES, rulesArr);
 }
 
