@@ -3,6 +3,8 @@
         "inputhandler.h": "c",
         "tools.h": "c",
         "queue.h": "c",
-        "symbollist.h": "c"
+        "symbollist.h": "c",
+        "enginecompile.h": "c",
+        "asmboperation.h": "c"
     }
 }

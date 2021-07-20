@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include "headers/inputHandler.h"
-#include "headers/tools.h"
+#include "../headers/inputHandler.h"
+#include "../headers/tools.h"
 
 void runRulessOnLinesOfFile(int argc, char *argv[], int numOfRules, void (*rulesArr[])(char *, int, char *))
 {
@@ -28,7 +28,6 @@ void runRulessOnLinesOfFile(int argc, char *argv[], int numOfRules, void (*rules
             while (getline(&line, &size, f) != -1)
             {
                 line[strlen(line) - 1] = '\0'; /*Set the last char to null character instead of the newline char*/
-                logger(I, "the line is => %s", line);
                 /*Implement all the functions that in array on the line*/
                 for (j = 0; j < numOfRules; j++)
                     rulesArr[j](line, lineNumber, filename);

@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "headers/tools.h"
-#include "headers/queue.h"
+#include "../headers/tools.h"
+#include "../headers/queue.h"
 
 /*TODO: free all elements*/
 int enqueue(queue *queue, char *word)
@@ -18,7 +18,7 @@ int enqueue(queue *queue, char *word)
 
     /*Create new element for the queue*/
     newNode = (node *)malloc(sizeof(node));
-    newNode->data = (char *)malloc(sizeof(word)); /*TODO: HANDLE WHEN NOT ENOUGH MEMORY FOR MALLOC */
+    newNode->data = (char *)malloc(sizeof(word) + 1); /*TODO: HANDLE WHEN NOT ENOUGH MEMORY FOR MALLOC */
     strcpy(newNode->data, word);
     newNode->next = NULL;
     if (queue->headP == NULL)
@@ -53,7 +53,7 @@ void display(node *headP)
     node *tmp = headP;
     while (tmp != NULL)
     {
-        logger(I, "Node with word => %s", tmp->data);
+        logger(D, "Node with word => %s", tmp->data);
         tmp = tmp->next;
     }
 }
@@ -69,7 +69,7 @@ void enqueueWordsFromString(queue *queue, char *str)
     for (i = 0, ch = str; i < totalChars + 1; i++, ch++) /*  +1 stends for '\0'  */
     {
         /*checking if there is a space or end of string*/
-        if ((*ch) == ' ' || (*ch) == '\0')
+        if ((*ch) == ' ' || (*ch) == '\0' || (*ch) == '\t')
         {
             /*charCounter != 0 means that previuos chars isn't space*/
             if (charCounter != 0)
@@ -77,7 +77,8 @@ void enqueueWordsFromString(queue *queue, char *str)
                 /*Creating new word buffer,note:the memory will be free in the dequeue method.*/
                 char *newWord = (char *)malloc(charCounter + 1);
                 /*copy the word from the str with relative indexes*/
-                strncpy(newWord, str + i - charCounter, charCounter + 1);
+                strncpy(newWord, str + i - charCounter, charCounter);
+                *(newWord + charCounter) = '\0'; /*end of the word*/
                 enqueue(queue, newWord);
                 /*after finish adding the word , zero the char counter*/
                 charCounter = 0;

@@ -1,6 +1,6 @@
 #include <string.h>
-#include "headers/asmbOperation.h"
-#include "headers/tools.h"
+#include "../headers/asmbOperation.h"
+#include "../headers/tools.h"
 
 static operetion operations[] = {
     {"add", 'R', 1, 0},

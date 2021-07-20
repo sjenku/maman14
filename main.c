@@ -12,9 +12,13 @@ void check_leaks();
 
 int main(int argc, char *argv[])
 {
+    loggerOn(E);
     loggerOn(D);
 
-    runEngine(argc, argv);
-    check_leaks();
+    // runEngine(argc, argv);
+    queue *q = initQueue();
+    enqueueWordsFromString(q, "LOOP: ori	$9,-5,$2");
+    display(q->headP);
+    // check_leaks();
     return 0;
 }

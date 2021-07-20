@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "headers/symbolList.h"
-#include "headers/tools.h"
+#include "../headers/symbolList.h"
+#include "../headers/tools.h"
 
-int addSymbol(symbolsList *symbolList, char *name, int adderss) /*TODO:Optemize in one block make new node*/
+int addSymbol(symbolsList *symbolList, char *name, int adderss, char *symbolAttribute) /*TODO:Optemize in one block make new node*/
 {
     symbolNode *sNode;
     symbolNode *tmp;
@@ -21,8 +21,10 @@ int addSymbol(symbolsList *symbolList, char *name, int adderss) /*TODO:Optemize 
     /*Insert Values of Adress and name*/
     logger(L, "Insert Values of Adress and name");
     sNode->adrress = adderss;
-    sNode->name = (char *)malloc(sizeof(name)); /*NOTE:Will be free in 'DestroySymbolList' method*/
+    sNode->name = (char *)malloc(sizeof(name) + 1); /*NOTE:Will be free in 'DestroySymbolList' method*/
     strcpy(sNode->name, name);
+    sNode->attribute = (char *)malloc(sizeof(symbolAttribute) + 1);
+    strcpy(sNode->attribute, symbolAttribute);
     sNode->next = NULL;
 
     /*Empty Head of Linked List*/
@@ -55,6 +57,23 @@ int addSymbol(symbolsList *symbolList, char *name, int adderss) /*TODO:Optemize 
     return FAILURE;
 }
 
+int symbolExist(symbolsList *list, char *name)
+{
+    symbolNode *tmp;
+    if (list == NULL)
+        return FAILURE;
+
+    tmp = list->head;
+    while (tmp != NULL)
+    {
+        if (strcmp(tmp->name, name) == 0)
+            return SUCCESS;
+        else
+            tmp = tmp->next;
+    }
+    return FAILURE;
+}
+
 void printSymbolsFrom(symbolNode *head)
 {
     if (head == NULL)
@@ -65,7 +84,7 @@ void printSymbolsFrom(symbolNode *head)
         symbolNode *tmp = head;
         while (tmp != NULL)
         {
-            logger(D, "[Symbol]=>[Name]:%s,[Address]:%d", tmp->name, tmp->adrress);
+            logger(D, "[Symbol]=>[Name]:%s,[Address]:%d,[ATTRIBUTE]:%s", tmp->name, tmp->adrress, tmp->attribute);
             tmp = tmp->next;
         }
     }
@@ -94,6 +113,8 @@ void destorySymbolList(symbolsList *symbolsList)
     {
         if (tmp->name != NULL)
             free(tmp->name);
+        if (tmp->attribute != NULL)
+            free(tmp->attribute);
 
         symbolsList->head = symbolsList->head->next;
         free(tmp);
