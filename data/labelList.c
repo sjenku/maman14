@@ -2,44 +2,44 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "../headers/symbolList.h"
+#include "../headers/labelList.h"
 #include "../headers/tools.h"
 
-int addSymbol(symbolsList *symbolList, char *name, int adderss, char *symbolAttribute) /*TODO:Optemize in one block make new node*/
+int addLabel(labelsList *labelList, char *name, int adderss, char *labelAttribute) /*TODO:Optemize in one block make new node*/
 {
-    symbolNode *sNode;
-    symbolNode *tmp;
+    labelNode *sNode;
+    labelNode *tmp;
     /*Wrong Input*/
-    if (symbolList == NULL)
+    if (labelList == NULL)
     {
         logger(L, "FAILURE");
         return FAILURE;
     }
-    /*Create symbol node*/
-    logger(L, "Create symbol node");
-    sNode = (symbolNode *)malloc(sizeof(symbolNode));
+    /*Create label node*/
+    logger(L, "Create label node");
+    sNode = (labelNode *)malloc(sizeof(labelNode));
     /*Insert Values of Adress and name*/
     logger(L, "Insert Values of Adress and name");
     sNode->adrress = adderss;
-    sNode->name = (char *)malloc(sizeof(name) + 1); /*NOTE:Will be free in 'DestroySymbolList' method*/
+    sNode->name = (char *)malloc(sizeof(name) + 1); /*NOTE:Will be free in 'DestroylabelList' method*/
     strcpy(sNode->name, name);
-    sNode->attribute = (char *)malloc(sizeof(symbolAttribute) + 1);
-    strcpy(sNode->attribute, symbolAttribute);
+    sNode->attribute = (char *)malloc(sizeof(labelAttribute) + 1);
+    strcpy(sNode->attribute, labelAttribute);
     sNode->next = NULL;
 
     /*Empty Head of Linked List*/
-    if (symbolList->head == NULL)
+    if (labelList->head == NULL)
     {
-        /*Insert the new symbol to head of the list*/
-        logger(L, "Insert the new symbol to head of the list");
-        symbolList->head = sNode;
+        /*Insert the new label to head of the list*/
+        logger(L, "Insert the new label to head of the list");
+        labelList->head = sNode;
 
         return SUCCESS;
     }
     else
     {
         logger(L, "Init tmp");
-        tmp = symbolList->head;
+        tmp = labelList->head;
         logger(L, "tmp => %s", tmp->name);
 
         /*Iterate to the last Node*/
@@ -49,17 +49,17 @@ int addSymbol(symbolsList *symbolList, char *name, int adderss, char *symbolAttr
             logger(L, "iterate next");
             tmp = tmp->next;
         }
-        /*Insert the new symbol's node to the end of the list */
-        logger(I, "insert the next symbol to the list => %s", sNode->name);
+        /*Insert the new label's node to the end of the list */
+        logger(I, "insert the next label to the list => %s", sNode->name);
         tmp->next = sNode;
         return SUCCESS;
     }
     return FAILURE;
 }
 
-int symbolExist(symbolsList *list, char *name)
+int labelExist(labelsList *list, char *name)
 {
-    symbolNode *tmp;
+    labelNode *tmp;
     if (list == NULL)
         return FAILURE;
 
@@ -74,26 +74,26 @@ int symbolExist(symbolsList *list, char *name)
     return FAILURE;
 }
 
-void printSymbolsFrom(symbolNode *head)
+void printLabelsFrom(labelNode *head)
 {
     if (head == NULL)
         return;
     else
     {
         /*Iterate threw the list begining from the node been givin in the param*/
-        symbolNode *tmp = head;
+        labelNode *tmp = head;
         while (tmp != NULL)
         {
-            logger(D, "[Symbol]=>[Name]:%s,[Address]:%d,[ATTRIBUTE]:%s", tmp->name, tmp->adrress, tmp->attribute);
+            logger(D, "[label]=>[Name]:%s,[Address]:%d,[ATTRIBUTE]:%s", tmp->name, tmp->adrress, tmp->attribute);
             tmp = tmp->next;
         }
     }
 }
 
-symbolsList *initSymbolsList()
+labelsList *initLabelsList()
 {
-    symbolsList *newList;
-    newList = (symbolsList *)malloc(sizeof(symbolsList));
+    labelsList *newList;
+    newList = (labelsList *)malloc(sizeof(labelsList));
     if (newList == NULL)
         return NULL;
 
@@ -102,13 +102,13 @@ symbolsList *initSymbolsList()
 }
 
 /*Remove all the elements and Release all the memory*/
-void destorySymbolList(symbolsList *symbolsList)
+void destoryLabelList(labelsList *labelsList)
 {
-    symbolNode *tmp;
-    if (symbolsList == NULL)
+    labelNode *tmp;
+    if (labelsList == NULL)
         return;
 
-    tmp = symbolsList->head;
+    tmp = labelsList->head;
     while (tmp != NULL)
     {
         if (tmp->name != NULL)
@@ -116,9 +116,9 @@ void destorySymbolList(symbolsList *symbolsList)
         if (tmp->attribute != NULL)
             free(tmp->attribute);
 
-        symbolsList->head = symbolsList->head->next;
+        labelsList->head = labelsList->head->next;
         free(tmp);
-        tmp = symbolsList->head;
+        tmp = labelsList->head;
     }
-    free(symbolsList);
+    free(labelsList);
 }

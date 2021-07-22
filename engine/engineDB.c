@@ -12,17 +12,17 @@ engineDB *initEngineDB()
     if (db == NULL)
         return NULL;
     /*Init pointer to the queue*/
-    db->queue = initQueue();
+    db->errorsQueue = initQueue();
     /*handle not enough memory when allocating memory*/
-    if (db->queue == NULL)
+    if (db->errorsQueue == NULL)
     {
         free(db);
         return NULL;
     }
-    /*Init symbols list*/
-    db->symbolsList = initSymbolsList();
+    /*Init labels list*/
+    db->labelsList = initLabelsList();
     /*handle not enough memory during allocation of memory*/
-    if (db->symbolsList == NULL)
+    if (db->labelsList == NULL)
     {
         free(db);
         return NULL;
@@ -40,8 +40,9 @@ void destroyEngineDB(engineDB *db)
     if (db == NULL)
         return;
 
-    destroyQueue(db->queue);
-    destorySymbolList(db->symbolsList);
+    destroyQueue(db->errorsQueue);
+    destoryLabelList(db->labelsList);
+    printf("Free DATABASE");
     free(db);
 }
 

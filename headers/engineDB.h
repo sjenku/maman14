@@ -2,12 +2,12 @@
 #define _ENGINE_DB_H
 
 #include "queue.h"
-#include "symbolList.h"
+#include "labelList.h"
 
 typedef struct engineDB
 {
-    queue *queue;             /*the queue will hold temerory seperated words in each line*/
-    symbolsList *symbolsList; /*the list will hold the all symbols fetched from the file*/
+    queue *errorsQueue;     /*the queue will hold temerory seperated words in each line*/
+    labelsList *labelsList; /*the list will hold the all labels fetched from the file*/
     int DC;
     int IC;
 } engineDB;

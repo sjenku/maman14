@@ -5,7 +5,7 @@
 #include "../headers/queue.h"
 
 /*TODO: free all elements*/
-int enqueue(queue *queue, char *word)
+int enqueue(queue *queue, const char *word)
 {
     node *newNode;
 
@@ -18,9 +18,16 @@ int enqueue(queue *queue, char *word)
 
     /*Create new element for the queue*/
     newNode = (node *)malloc(sizeof(node));
-    newNode->data = (char *)malloc(sizeof(word) + 1); /*TODO: HANDLE WHEN NOT ENOUGH MEMORY FOR MALLOC */
+    if (newNode == NULL)
+        return FAILURE;
+
+    newNode->data = (char *)malloc(strlen(word) + 1);
+    if (newNode->data == NULL)
+        return FAILURE;
+
     strcpy(newNode->data, word);
     newNode->next = NULL;
+
     if (queue->headP == NULL)
     {
         /*Insert to the queue*/
@@ -53,7 +60,6 @@ void display(node *headP)
     node *tmp = headP;
     while (tmp != NULL)
     {
-        logger(D, "Node with word => %s", tmp->data);
         tmp = tmp->next;
     }
 }

@@ -4,12 +4,11 @@
 
 typedef struct response
 {
-    int status;
     char *info;
 
 } response;
 
-response *newResponse(int status, const char *info, ...);
+response *newResponse(const char *info, ...);
 void destroyResponse(response *res);
 
 #endif

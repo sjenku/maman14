@@ -5,7 +5,7 @@
 #include "../headers/response.h"
 #include "../headers/tools.h"
 
-response *newResponse(int status, const char *info, ...)
+response *newResponse(const char *info, ...)
 {
     response *res;
     va_list args;
@@ -14,8 +14,6 @@ response *newResponse(int status, const char *info, ...)
     /*In case memory allocation not successefull*/
     if (res == NULL)
         return NULL;
-    /*set status*/
-    res->status = status;
     /*check if info exist,if does then allocate memory for this*/
     if (info != NULL)
     {

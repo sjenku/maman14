@@ -16,7 +16,7 @@ typedef struct queue
 } queue;
 
 queue *initQueue();
-int enqueue(queue *queue, char *word);
+int enqueue(queue *queue, const char *word);
 void enqueueWordsFromString(queue *queue, char *str);
 int dequeue(queue *q);
 int dequeueAll(queue *q);
