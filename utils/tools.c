@@ -23,10 +23,11 @@ void loggerOff(int loggerType)
     }
 }
 
+/*
 void loggerError(const char *errorInfo, const char *filename, int lineNumber)
 {
     printf("[ERROR][FILENAME]:%s[LINE]:%d,%s\n", filename, lineNumber, errorInfo);
-}
+}*/
 
 void logger(int loggerType, const char *format, ...)
 {

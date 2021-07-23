@@ -60,6 +60,7 @@ void display(node *headP)
     node *tmp = headP;
     while (tmp != NULL)
     {
+        logger(E, tmp->data);
         tmp = tmp->next;
     }
 }

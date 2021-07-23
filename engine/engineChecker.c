@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "../headers/response.h"
+#include "../headers/dataGuidance.h"
+#include "../headers/engineChecker.h"
 #include "../headers/asmbOperation.h"
 #include "../headers/engineDB.h"
 #include "../headers/tools.h"
@@ -31,15 +33,25 @@ int isOperation(const char *word)
     return isOperationValid(word);
 }
 
-int wordType(const char *word)
+/* return type of the word with pre defined int values indicated the type 'TYPE_LABEL'
+ or 'TYPE_OPERATION' or 'TYPE_COMMENT' or 'TYPE_DATA_GUIDANCE' or 'UNDEFINED' */
+int wordType(char *word, const char *filename, int lineNumber)
 {
-
     //TODO: define the word type and then handle each word type accordingly in the engineWorkFlow
-    return 1;
+    if (isLabel(word, filename, lineNumber))
+        return TYPE_LABEL;
+    else if (isOperation(word))
+        return TYPE_OPERATION;
+    else if (isComment(word))
+        return TYPE_COMMENT;
+    else if (isDataGuidanceWord(word))
+        return TYPE_DATA_GUIDANCE;
+    else
+        return UNDEFINED;
 }
 
 /*if it's a label it will return response type with status 'SUCCESS' or 'FAILURE' and relative info*/
-int isLabel(char *word)
+int isLabel(char *word, const char *filename, int lineNumber)
 {
     char *ch;           /* for handle each char in the word */
     int position;       /* position of the current char */
@@ -65,7 +77,10 @@ int isLabel(char *word)
             if (isOperation(tmpStr))
             {
                 /* generate the error to be inserted to the queue of errors */
-                res = newResponse("Can't be used '%s' as a label,this is an operation name", tmpStr);
+                if (filename != NULL && strcmp(filename, "") != 0)
+                    res = newResponse("[FILENAME]:%s,[LINE]:%d,Can't be used '%s' as a label,this is an operation name", filename, lineNumber, tmpStr);
+                else
+                    res = newResponse("Can't be used '%s' as a label,this is an operation name", tmpStr);
                 /* insert to data base the error */
                 enqueue(engineDB->errorsQueue, res->info);
                 /* free memory */
@@ -80,7 +95,10 @@ int isLabel(char *word)
             if ((*ch != '\0') && (*ch != ' '))
             {
                 /* generate the error to be inserted to the queue of errors */
-                res = newResponse("label should end with ':',label can't finish with a letter '%c'", *ch);
+                if (filename != NULL && strcmp(filename, "") != 0)
+                    res = newResponse("[FILENAME]:%s,[LINE]:%d,label should end with ':',label can't finish with a letter '%c'", filename, lineNumber, *ch);
+                else
+                    res = newResponse("label should end with ':',label can't finish with a letter '%c'", *ch);
                 /* insert to data base the error */
                 enqueue(engineDB->errorsQueue, res->info);
                 /* free memory */

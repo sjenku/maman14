@@ -11,39 +11,47 @@
 #include "../headers/engineChecker.h"
 #include "../headers/dataGuidance.h"
 
-/*this method takes the first word and second word in the line and ,
-Check if the first word in the line is label and handle accordingly*/
+/* this method takes the first word label and second word in the line and insert if no duplicates to the data base */
 void handleCaseFirstWordLabel(const char *word, const char *nextWord, const char *filename, int lineNumber)
 {
     char *label;
     engineDB *db;
     int length;
+    response *res;
+
+    /* get pointer to the data base */
     db = getEngineDB();
     /* extract the label from word (without ':') */
-    // length = strlen(word);
-    // label = (char *)malloc(length);
-    // strcpy(label, word);
-    // printf("The Label Is => %s size => %d\n", label, length);
-
+    length = strlen(word);
+    label = (char *)malloc(length);
+    strcpy(label, word);
+    *(label + length - 1) = '\0';
     /*----------this is label handle label------------*/
+    if (labelExist(db->labelsList, label)) /*check for duplicates*/
+    {
+        res = newResponse("[FILENAME]:%s,[LINE]:%d,can't duplicate labels '%s'", filename, lineNumber, word); /*create new res message*/
+        /* enqueue response error to the errors queue in the data base */
+        enqueue(db->errorsQueue, res->info);
+        /* free memory */
+        destroyResponse(res);
+    }
+    else /*insert the label after all checks*/
+    {
+        if (isDataGuidanceWord(nextWord))
+            addLabel(db->labelsList, label, 0, ATTRIBUTE_DATA);
+        else if (isOperationValid(nextWord))
+            addLabel(db->labelsList, label, 0, ATTRIBUTE_CODE);
+    }
+    free(label);
+}
 
-    // if (labelExist(db->labelsList, res->info)) /*check for duplicates*/
-    // {
-    //     destroyResponse(res);                                            /*free old error*/
-    //     res = newResponse(FAILURE, "can't duplicate labels '%s'", word); /*create new res message*/
-    //     loggerError(res->info, filename, lineNumber);                    /*print to stdout*/
-    // }
-    // else /*insert the label after all checks*/
-    // {
-    //     //TODO: handle insertion depending on second word operetion or data
-    //     if (isDataGuidanceWord(nextWord))
-    //         addLabel(db->labelsList, res->info, 0, ATTRIBUTE_DATA);
-    //     else if (isOperationValid(nextWord))
-    //     {
-    //         addLabel(db->labelsList, res->info, 0, ATTRIBUTE_CODE);
-    //     }
-    // }
-    // free(label);
+void handleFirstWordOperation(const char *word, const char *filename, int lineNumber)
+{
+    engineDB *db;
+
+    db = getEngineDB();
+    /* increment instruction counter */
+    incrementIC(db);
 }
 
 /* this function set the workflow that actually the algorithm that handle each line */
@@ -51,6 +59,7 @@ void engineWorkFlowForLine(char *line, int lineNumber, char *filename)
 {
     queue *tmpQueue;
     char *word;
+    int type;
     char *nextWord;
     /* check if the line is empty */
     if (line != NULL || strcmp(line, "") != 0)
@@ -69,9 +78,22 @@ void engineWorkFlowForLine(char *line, int lineNumber, char *filename)
         nextWord = (char *)malloc(sizeDataFirstElement(tmpQueue));
         peek(tmpQueue, &nextWord);
 
-        if (isLabel(word))
-            printf("Is label\n");
-        //     handleCaseFirstWordLabel(word, nextWord, filename, lineNumber);
+        /* get the type of the first word to handle accordingly */
+        type = wordType(word, filename, lineNumber);
+
+        switch (type)
+        {
+        case TYPE_LABEL:
+            handleCaseFirstWordLabel(word, nextWord, filename, lineNumber);
+            break;
+        case TYPE_COMMENT:
+            handleFirstWordOperation(word, filename, lineNumber);
+            break;
+        case TYPE_OPERATION:
+            break;
+        default:
+            break;
+        }
 
         // if (!isComment(word))
         // {
@@ -113,5 +135,7 @@ void runEngine(int argc, char *argv[])
     runRulessOnLinesOfFile(argc, argv, TOTAL_RULES, rulesArr);
     /*free memory*/
     printLabelsFrom(db->labelsList->head);
+    /* print errors */
+    display(db->errorsQueue->headP);
     destroyEngineDB(db);
 }

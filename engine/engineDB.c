@@ -54,3 +54,8 @@ engineDB *getEngineDB()
         db = initEngineDB();
     return db;
 }
+
+void incrementIC(engineDB *db)
+{
+    db->IC += 4;
+}

@@ -18,6 +18,8 @@ engineDB *initEngineDB();
 engineDB *initEngineDB();
 /*this function return the data base*/
 engineDB *getEngineDB();
+/* increment IC */
+void incrementIC();
 
 /*remove all elements of the engine data base and free memory*/
 void destroyEngineDB(engineDB *db);

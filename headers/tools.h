@@ -12,7 +12,9 @@ static enum LoggerType { L,
 } logT;
 
 void logger(int loggerType, const char *format, ...);
+/*
 void loggerError(const char *errorInfo, const char *filename, int lineNumber);
+*/
 void loggerOn(int loggerType);
 void loggerOff(int loggerType);
 

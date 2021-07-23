@@ -1,12 +1,13 @@
 {
-    "files.associations": {
-        "inputhandler.h": "c",
-        "tools.h": "c",
-        "queue.h": "c",
-        "symbollist.h": "c",
-        "enginecompile.h": "c",
-        "asmboperation.h": "c",
-        "labellist.h": "c",
-        "enginedb.h": "c"
-    }
+  "files.associations": {
+    "inputhandler.h": "c",
+    "tools.h": "c",
+    "queue.h": "c",
+    "symbollist.h": "c",
+    "enginecompile.h": "c",
+    "asmboperation.h": "c",
+    "labellist.h": "c",
+    "enginedb.h": "c",
+    "dataguidance.h": "c"
+  }
 }
