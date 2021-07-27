@@ -8,8 +8,8 @@ typedef struct engineDB
 {
     queue *errorsQueue;     /*the queue will hold temerory seperated words in each line*/
     labelsList *labelsList; /*the list will hold the all labels fetched from the file*/
-    int DC;
-    int IC;
+    int DC, DCF;
+    int IC, ICF;
 } engineDB;
 
 engineDB *initEngineDB();
@@ -18,8 +18,8 @@ engineDB *initEngineDB();
 engineDB *initEngineDB();
 /*this function return the data base*/
 engineDB *getEngineDB();
-/* increment IC */
-void incrementIC();
+/* increment Instruction counter */
+void incrementEngineDbIC();
 
 /*remove all elements of the engine data base and free memory*/
 void destroyEngineDB(engineDB *db);

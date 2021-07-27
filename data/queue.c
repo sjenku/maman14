@@ -8,7 +8,6 @@
 int enqueue(queue *queue, const char *word)
 {
     node *newNode;
-
     /*WRONG INPUT*/
     if (queue == NULL)
     {
@@ -42,7 +41,6 @@ int enqueue(queue *queue, const char *word)
         queue->tailP = newNode;
         return SUCCESS;
     }
-
     return FAILURE;
 }
 
@@ -65,8 +63,8 @@ void display(node *headP)
     }
 }
 
-/*This Function enqueue each word seperating it if space accure*/
-void enqueueWordsFromString(queue *queue, char *str)
+/*This Function enqueue each word seperating it with seperators provided accure*/
+void enqueueStringSeperateWith(queue *queue, char *str, char seperator1, char seperator2, char seperator3)
 {
     char *ch; /*used to iterate threw string and look on each char in it.*/
     int i;    /*index of each char*/
@@ -76,7 +74,7 @@ void enqueueWordsFromString(queue *queue, char *str)
     for (i = 0, ch = str; i < totalChars + 1; i++, ch++) /*  +1 stends for '\0'  */
     {
         /*checking if there is a space or end of string*/
-        if ((*ch) == ' ' || (*ch) == '\0' || (*ch) == '\t')
+        if ((*ch) == seperator1 || (*ch) == seperator2 || (*ch) == seperator3 || (*ch) == '\0')
         {
             /*charCounter != 0 means that previuos chars isn't space*/
             if (charCounter != 0)
@@ -172,4 +170,50 @@ int destroyQueue(queue *q)
     dequeueAll(q);
     free(q);
     return SUCCESS;
+}
+
+int isEmpty(queue *q)
+{
+    if (q == NULL)
+        return SUCCESS;
+    else if (q->headP == NULL)
+        return SUCCESS;
+    else
+        return FAILURE;
+}
+
+/* return the size of data elements */
+int sizeOfQueueData(queue *q)
+{
+    node *tmpNode;
+    int size;
+    size = 0;
+    tmpNode = q->headP;
+    while (tmpNode != NULL)
+    {
+        size += strlen(tmpNode->data);
+        tmpNode = tmpNode->next;
+    }
+    return size;
+}
+
+void catToStringWithSpace(queue *q, char *str)
+{
+    node *tmpNode;
+    tmpNode = q->headP;
+    int i = 1;
+    while (tmpNode != NULL)
+    {
+        if (i == 1)
+        {
+            strcpy(str, tmpNode->data);
+            i++;
+        }
+        else
+        {
+            strcat(str, tmpNode->data);
+        }
+        strcat(str, " "); /* add space */
+        tmpNode = tmpNode->next;
+    }
 }

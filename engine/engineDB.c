@@ -27,11 +27,15 @@ engineDB *initEngineDB()
         free(db);
         return NULL;
     }
-    /*init DC- Data Counter*/
+    /* init DC- Data Counter*/
     db->DC = 0;
-    /*init IC - Instruction Counter*/
+    /* init IC - Instruction Counter*/
     db->IC = 100;
-    /*return new Data Base for engine*/
+    /* init IDF - Data Counter final */
+    db->DCF = 0;
+    /* init DCF - Instruction Counter final */
+    db->ICF = 0;
+    /* return new Data Base for engine*/
     return db;
 }
 
@@ -55,7 +59,9 @@ engineDB *getEngineDB()
     return db;
 }
 
-void incrementIC(engineDB *db)
+/* increment instruction counter */
+void incrementEngineDbIC(engineDB *db)
 {
     db->IC += 4;
+    db->ICF = db->IC;
 }
