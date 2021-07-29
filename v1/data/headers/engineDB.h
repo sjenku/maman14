@@ -12,7 +12,7 @@ typedef struct engineDB
     int IC, ICF;
 } engineDB;
 
-engineDB *initEngineDB();
+// engineDB *initEngineDB();
 
 /*this function is initialize the Data Base for the engine*/
 engineDB *initEngineDB();
