@@ -8,6 +8,7 @@
     "asmboperation.h": "c",
     "labellist.h": "c",
     "enginedb.h": "c",
-    "dataguidance.h": "c"
+    "dataguidance.h": "c",
+    "operetionsegment.h": "c"
   }
 }
