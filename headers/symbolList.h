@@ -1,6 +1,9 @@
 #ifndef _SYMBOL_LIST_H
 #define _SYMBOL_LIST_H
 
+#define ATTRIBUTE_CODE "code"
+#define ATTRIBUTE_DATA "data"
+
 typedef struct symbolListNode
 {
     int address;
@@ -13,10 +16,15 @@ typedef struct symbolListNode
 typedef struct symbolsList
 {
     symbolListNode *head_p;
-};
+} symbolsList;
 
-int isSymbol(char *str);
-int insertSymbol(char *symbol, int address, char *attribute);
-void printSymbols();
+symbolsList *initSymbolsList();
+symbolsList *getSymbolsList();
+char *symbolErrorReason(int errorStatus);
+int isSymbolExist(symbolsList *symbols, char *symbolName);
+int isValidSymbolName(char *str);
+int insertSymbol(symbolsList *symbols, char *symbolName, int address, char *attribute);
+void printSymbols(symbolsList *symbols);
+int destroySymbolsList(symbolsList *symbols);
 
 #endif

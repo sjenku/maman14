@@ -5,31 +5,26 @@
 #include "headers/stringSeperator.h"
 #include "headers/errors.h"
 #include "headers/operetionSegment.h"
+#include "headers/symbolList.h"
+#include "headers/dataSegment.h"
+#include "headers/engineCompile.h"
 
 void check_leaks();
 
 int main(int argc, char *argv[])
 {
 
+    seperator *seperator;
+    char *resultedString;
     loggerOn(I);
     loggerOn(E);
-
-    operetionSeg *seg;
-    seg = initOperetionSegment();
-    insertOperetionTo(seg, "add", "3,4,33");
-    insertOperetionTo(seg, "hey", "2,41,13");
-    printOperetionsSeg(seg);
-
-    /*  errors *errs;
-
-
-    errs = initErrorsList();
-    insertErrorTo(errs, 200, "Hello This is Greate Error!");
-    insertErrorTo(errs, 400, "Naaaaa This Is Badddd?");
-    insertErrorTo(errs, 200, "sdsdsdsd");
-    printErrors(errs);
-    destroyErrorsList(errs); */
-
-    // check_leaks();
+    seperator = initSeprator();
+    appendString(seperator, "s , , , ");
+    resultedString = concenateToStringFrom(seperator, 1);
+    logger(I, "the string => %s", resultedString);
+    if (resultedString != NULL)
+        free(resultedString);
+    destroySeperator(seperator);
+    check_leaks();
     return 0;
 }

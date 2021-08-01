@@ -9,6 +9,10 @@
     "labellist.h": "c",
     "enginedb.h": "c",
     "dataguidance.h": "c",
-    "operetionsegment.h": "c"
+    "operetionsegment.h": "c",
+    "__nullptr": "cpp",
+    "response.h": "c",
+    "stringseperator.h": "c",
+    "datasegment.h": "c"
   }
 }

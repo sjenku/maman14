@@ -34,7 +34,8 @@ static operetionInfo validOperations[] = {
 
 /* Private */
 int totalOperations();
-int deleteFirstOperetion(operetionSeg *seg);
+int removeFirstOperetion(operetionSeg *seg);
+int removeAllOperetionsFrom(operetionSeg *seg);
 
 /* Public */
 operetionSeg *initOperetionSegment()
@@ -89,7 +90,12 @@ int insertOperetionTo(operetionSeg *seg, char *operetionName, char *value)
     strcpy(newNode->value, value);
     *(newNode->value + valLength) = '\0';
 
+    /* set next pointer */
     newNode->next = NULL;
+
+    /* set instruction counter IC */
+    newNode->address = seg->IC;
+    seg->IC += IC_INCREASER;
     /* insert First Element */
     if (seg->head_p == NULL)
     {
@@ -116,13 +122,46 @@ void printOperetionsSeg(operetionSeg *seg)
         tmpNode = seg->head_p;
         while (tmpNode != NULL)
         {
-            logger(I, "[Name]:%s,[Value]:%s", tmpNode->name, tmpNode->value);
+            logger(I, "[Name]:%s,[Value]:%s,[Address]:%d", tmpNode->name, tmpNode->value, tmpNode->address);
             tmpNode = tmpNode->next;
         }
     }
 }
 
-int deleteFirstOperetion(operetionSeg *seg)
+int removeFirstOperetion(operetionSeg *seg)
 {
-    //TODO:Complete
+    operetionNode *temp;
+    /*checking if queue isn't empty*/
+    if (seg->head_p == NULL)
+        return FAILURE;
+
+    /*creating temp pointer to point on the element that would be removed from the queue*/
+    temp = seg->head_p;
+    /*move the head to the next element*/
+    seg->head_p = seg->head_p->next;
+
+    /*free memory*/
+    free(temp->value);
+    free(temp->name);
+    free(temp);
+    return SUCCESS;
+}
+
+int removeAllOperetionsFrom(operetionSeg *seg)
+{
+    if (seg == NULL)
+        return FAILURE;
+
+    while (removeFirstOperetion(seg))
+        ;
+    return SUCCESS;
+}
+
+int destroyOperetionSeg(operetionSeg *seg)
+{
+    if (seg == NULL)
+        return FAILURE;
+    removeAllOperetionsFrom(seg);
+    free(seg);
+    return SUCCESS;
 }
