@@ -36,8 +36,46 @@ static operetionInfo validOperations[] = {
 int totalOperations();
 int removeFirstOperetion(operetionSeg *seg);
 int removeAllOperetionsFrom(operetionSeg *seg);
+operetionInfo *getOperetionInfo(char *operetionName);
 
 /* Public */
+char *toMachineCode(char *operetionName)
+{
+    /* retrieve the info about this kind of operetion */
+    operetionInfo *oprInfo;
+    oprInfo = getOperetionInfo(operetionName);
+    switch (oprInfo->type)
+    {
+    case 'R':
+        return "It's an R command";
+    case 'J':
+        return "It's an J command";
+    case 'I':
+        return "It's an I command";
+    default:
+        return "no type";
+    }
+}
+
+operetionInfo *getOperetionInfo(char *name)
+{
+    int i, totalOpr;
+    totalOpr = totalOperations();
+    if (name == NULL)
+        return NULL;
+    else
+    {
+        /* iterate to find mathcing operetion name */
+        for (i = 0; i < totalOpr; i++)
+        {
+            if (strcmp(name, validOperations[i].name) == 0)
+                return &validOperations[i];
+        }
+        /* not found */
+        return NULL;
+    }
+}
+
 operetionSeg *initOperetionSegment()
 {
     operetionSeg *seg;
@@ -47,13 +85,24 @@ operetionSeg *initOperetionSegment()
     return seg;
 }
 
-int isValidOperation(const char *str)
+int isValidOperationName(const char *str)
 {
     int i;
     int length = totalOperations();
     for (i = 0; i < length; i++)
     {
         if (strcmp(validOperations[i].name, str) == 0)
+            return SUCCESS;
+    }
+    return FAILURE;
+}
+int isValidOperetionValue(const char *value)
+{
+    int i;
+    int length = totalOperations();
+    for (i = 0; i < length; i++)
+    {
+        if (strcmp(validOperations[i].name, value) == 0)
             return SUCCESS;
     }
     return FAILURE;
@@ -72,7 +121,7 @@ int insertOperetionTo(operetionSeg *seg, char *operetionName, char *value)
     int oprNameLength, valLength;
 
     /* checking if the params valid */
-    if (seg == NULL || operetionName == NULL || value == NULL)
+    if (seg == NULL || operetionName == NULL)
         return FAILURE;
 
     /* creating new OperetionNode for inserting it to list of operetionSegment */
@@ -85,10 +134,20 @@ int insertOperetionTo(operetionSeg *seg, char *operetionName, char *value)
     *(newNode->name + oprNameLength) = '\0';
 
     /* handle insertion of value param */
-    valLength = strlen(value);
-    newNode->value = (char *)malloc(valLength + 1);
-    strcpy(newNode->value, value);
-    *(newNode->value + valLength) = '\0';
+    if (value != NULL)
+    {
+        valLength = strlen(value);
+        newNode->value = (char *)malloc(valLength + 1);
+        strcpy(newNode->value, value);
+        *(newNode->value + valLength) = '\0';
+    }
+    else
+    /* insert '\0' if value NULL */
+    {
+        valLength = 1;
+        newNode->value = (char *)malloc(valLength);
+        *(newNode->value + valLength) = '\0';
+    }
 
     /* set next pointer */
     newNode->next = NULL;
@@ -112,6 +171,15 @@ int insertOperetionTo(operetionSeg *seg, char *operetionName, char *value)
         tmpNode->next = newNode;
     }
     return SUCCESS;
+}
+
+/* singelton approach */
+operetionSeg *getOperetionSegment()
+{
+    static operetionSeg *seg;
+    if (seg == NULL)
+        seg = initOperetionSegment();
+    return seg;
 }
 
 void printOperetionsSeg(operetionSeg *seg)

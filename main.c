@@ -14,17 +14,22 @@ void check_leaks();
 int main(int argc, char *argv[])
 {
 
-    seperator *seperator;
-    char *resultedString;
     loggerOn(I);
-    loggerOn(E);
-    seperator = initSeprator();
-    appendString(seperator, "s , , , ");
-    resultedString = concenateToStringFrom(seperator, 1);
-    logger(I, "the string => %s", resultedString);
-    if (resultedString != NULL)
-        free(resultedString);
-    destroySeperator(seperator);
-    check_leaks();
+    runEngine(argc, argv);
+
     return 0;
 }
+
+// int sizeOfBits, i, num, k;
+// sizeOfBits = 5;
+// i = 0;
+// num = 33;
+// loggerOn(I);
+// for (i = sizeOfBits - 1; i >= 0; i--)
+// {
+//     k = num >> i;
+//     if (k & 1)
+//         printf("1");
+//     else
+//         printf("0");
+// }

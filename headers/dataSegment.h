@@ -22,11 +22,15 @@ typedef struct dataSegment
     int DC;
 } dataSeg;
 
+dataSeg *getDataSegment();
+int isExternal(char *str);
+int sizeOfValue(char *dataType, char *value);
 void printDataSeg(dataSeg *seg);
 dataSeg *initDataSegment();
+int moveAddressDataSeg(dataSeg *seg, int amount);
 int destroyDataSeg(dataSeg *seg);
 int isValidDirectiveName(const char *str);
-int isValidDirectiveValues(char *str);
+int isValidDirectiveValues(const char *directiveType, char *str);
 int destroyDataSeg(dataSeg *seg);
 int insertDirectiveTo(dataSeg *seg, char *directiveName, char *value);
 

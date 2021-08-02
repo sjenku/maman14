@@ -8,6 +8,7 @@
 #include "headers/stringSeperator.h"
 #include "headers/symbolList.h"
 #include "headers/dataSegment.h"
+#include "headers/operetionSegment.h"
 
 /* this method takes the first word label and second word in the line and insert if no duplicates to the data base */
 void handleCaseFirstWordLabel(const char *word, const char *secondWord, char *restLine, const char *filename, int lineNumber)
@@ -19,52 +20,122 @@ void handleFirstWordOperation(const char *word, const char *filename, int lineNu
 }
 
 /* this function set the workflow that actually the algorithm that handle each line */
-void engineWorkFlowForLine(char *line, int lineNumber, char *filename)
+void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
 {
     /* variables */
     seperator *seperator;
     symbolsList *symbolsList;
+    operetionSeg *operetionSeg;
+    dataSeg *dataSeg;
 
-    int flagSymbol, IC, DC;
+    int flagSymbol, wordIndex, length;
     char *firstWord;
-    char *secWord;
-    char *thirdWord;
+    char *tmpWord;
+    char *currentWord;
+    char *restLine;
 
+    /* set flag */
+    flagSymbol = FALSE;
+    /* set index to know on witch word we looking at */
+    wordIndex = 1;
     /* create symbol list that would hold the symbols */
     symbolsList = getSymbolsList();
+    /* get pointer to dataSegment that would hold the directives and their values */
+    dataSeg = getDataSegment();
+    /* get pointer to operetionSegment that would hold the operetions and their values */
+    operetionSeg = getOperetionSegment();
     /* create seperator that is seperating the line into individuals words */
     seperator = initSeprator();
     appendString(seperator, line);
 
     /* set pointer to the first word */
     firstWord = getPointerToWord(seperator, 1);
+    currentWord = getPointerToWord(seperator, wordIndex);
 
     /* if first word is NULL it's mean there was an empty line */
-    if (firstWord != NULL && !isComment(firstWord))
+    if (currentWord != NULL && !isComment(currentWord))
     {
-        /* check if valid symbol name */
-        if (isValidSymbolName(firstWord) == SUCCESS && !isSymbolExist(symbolsList, firstWord))
+        /* check if valid symbol name ,if it is, move the index to look on the next word and set
+        the symbol's flag to be true*/
+        if (isValidSymbolName(currentWord) == SUCCESS && !isSymbolExist(symbolsList, currentWord))
         {
-            secWord = getPointerToWord(seperator, 2);
-            if (isValidDirectiveName(secWord))
-                insertSymbol(symbolsList, firstWord, 100, ATTRIBUTE_DATA);
+            flagSymbol = TRUE;
+            wordIndex++;
+            currentWord = getPointerToWord(seperator, wordIndex);
         }
-        else
-        {
-        }
-    }
 
+        /* set the rest line to check the values is valid for directive and opetions */
+        restLine = concenateToStringFrom(seperator, wordIndex + 1);
+        /* case directive word */
+        if (isValidDirectiveName(currentWord) && isValidDirectiveValues(currentWord, restLine))
+        {
+            /* insert symbol if there been first word symbol */
+            if (flagSymbol == TRUE)
+                insertSymbol(symbolsList, firstWord, dataSeg->DC, ATTRIBUTE_DATA);
+
+            /* insert directive word */
+            insertDirectiveTo(dataSeg, currentWord, restLine);
+        }
+        /* handle case the word is .external */
+        else if (isExternal(currentWord))
+        {
+            currentWord = getPointerToWord(seperator, wordIndex + 1);
+            /* check if symbol valid, if true insert it with attribute .external */
+            if (currentWord != NULL)
+            {
+                /* create tmpSymbol with adding ':' */
+                length = strlen(currentWord) + 2; /* +2 stends for adding ':' and '\0' */
+                tmpWord = (char *)malloc(length);
+                strcpy(tmpWord, currentWord);
+                tmpWord[length - 2] = ':';
+                tmpWord[length - 1] = '\0';
+                /* check if it's valid symbol name and there is no more symbols with same name*/
+                if (isValidSymbolName(tmpWord) && !isSymbolExist(symbolsList, tmpWord))
+                    insertSymbol(symbolsList, tmpWord, 0, ATTRIBUTE_EXTERNAL);
+                free(tmpWord);
+            }
+        }
+        else if (isValidOperationName(currentWord))
+        {
+            if (flagSymbol == TRUE)
+            {
+                insertSymbol(symbolsList, firstWord, operetionSeg->IC, ATTRIBUTE_CODE);
+            }
+            logger(I, toMachineCode(currentWord, operetionSeg->IC));
+            insertOperetionTo(operetionSeg, currentWord, restLine);
+        }
+        /* free memory */
+        if (restLine != NULL)
+            free(restLine);
+    }
     /* free memory */
     destroySeperator(seperator);
+}
+
+void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
+{
 }
 
 void runEngine(int argc, char *argv[])
 {
     void (*rulesArr[TOTAL_RULES])(char *line, int lineNumber, char *filename); /*Array of functions(Rules) applied to handle each line*/
+    operetionSeg *operetionSeg;
+    symbolsList *symbolsList;
+    dataSeg *dataSeg;
+    int ICF;
+
+    operetionSeg = getOperetionSegment();
+    symbolsList = getSymbolsList();
+    dataSeg = getDataSegment();
 
     /*Set of functions that will be implemented on each line of the file*/
-    rulesArr[0] = engineWorkFlowForLine;
+    rulesArr[0] = engineWorkFlowForLineFirst;
     runRulessOnLinesOfFile(argc, argv, TOTAL_RULES, rulesArr);
+
+    /* Handle updating address in symbols with attribute 'data' and to dataSegment */
+    ICF = operetionSeg->IC;
+    moveAddressDataSeg(dataSeg, ICF);
+    moveAddressDataTypeSymbolsList(symbolsList, ICF);
 }
 
 int isComment(char *word)
@@ -79,7 +150,6 @@ int isComment(char *word)
          of the line that indecates that is a comment*/
             if (*ch == ';')
             {
-                logger(I, "Is a comment word => %s", word);
                 return SUCCESS;
             }
     }

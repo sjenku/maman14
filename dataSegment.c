@@ -34,38 +34,136 @@ int isValidDirectiveName(const char *str)
     return FAILURE;
 }
 
-int isValidDirectiveValues(char *str)
+/* this function returns number of elements if data valid ,example: '2,5,3' return 3
+and return 0 if not valid */
+int isValidDirectiveValues(const char *directiveType, char *str)
 {
     char *ch;
-    int commaFlag;
+    int allowedComma, allowedNumber, allowedSpace, allowedSign;
+    int numOfDataElements, prevCharNumber;
+    int allowedApostrophes;
 
-    /* set to true to handle case the first char is comma that not allowed */
-    commaFlag = TRUE;
-    for (ch = str; (*ch) != '\0'; ch++)
+    /* set initial values for flags */
+    allowedComma = prevCharNumber = FALSE;
+    allowedNumber = allowedSpace = allowedSign = allowedApostrophes = TRUE;
+
+    /* -------------handle case if it's ASCIZ type------------------ */
+    if (strcmp(directiveType, ASCIZ) == 0)
     {
-        if (!isspace((*ch)))
+        numOfDataElements = 0;
+        ch = str;
+        /* ignore space till first char */
+        while (isspace(*ch))
+            ch++;
+        /* check if the first char is " */
+        if ((*ch) != '"')
         {
-            /* if it's a comma and there is already comma before , return failure */
-            if (*ch == ',')
+            return FAILURE;
+        }
+        else
+        {
+            ch++;
+            /* iterate remaining characters between the apostrophes */
+            while ((*ch) != '"' && (*ch) != '\0')
             {
-                if (commaFlag == TRUE)
-                    return FAILURE;
-                /* case it's a comma but before wasn't one */
-                else
-                    commaFlag = TRUE;
+                numOfDataElements++;
+                ch++;
             }
-            else
+            /* check if the last char is apostrophes and there is not more chars after it */
+            if ((*ch) == '"' && *(ch + 1) != '\0')
             {
-                /* set to false allowing next char to be a comma */
-                commaFlag = FALSE;
+                ch++;
+                while (*ch != '\0')
+                {
+                    if (!isspace(*ch))
+                        return FAILURE;
+                    ch++;
+                }
+            }
+            /* check case  the last char apostrophes and no more char after it */
+            else if (*ch != '"')
+            {
+                return FAILURE;
             }
         }
+        numOfDataElements += 1; /* stends for null char */
+        return numOfDataElements;
     }
-    /* check if the last char is comma */
-    if (commaFlag == TRUE)
+
+    /* -----------handle other types (.dh,.dw,.db)-------------- */
+    numOfDataElements = 1;
+    if (str == NULL || strcmp(str, "") == 0)
         return FAILURE;
-    else
-        return SUCCESS;
+
+    ch = str;
+    while ((*ch) != '\0')
+    {
+        /* Space */
+        if (((*ch) == ' ' || (*ch) == '\t'))
+        {
+
+            if (prevCharNumber)
+                allowedNumber = FALSE;
+        }
+        /* Comma */
+        else if ((*ch) == ',' && allowedComma)
+        {
+
+            numOfDataElements++;
+            allowedComma = FALSE;
+            allowedNumber = TRUE;
+            prevCharNumber = FALSE;
+            allowedSign = TRUE;
+        }
+        /* Number */
+        else if ((*ch) >= '0' && (*ch) <= '9' && allowedNumber)
+        {
+            allowedComma = TRUE;
+            prevCharNumber = TRUE;
+            allowedSign = FALSE;
+        }
+        /* Sing */
+        else if (((*ch) == '-' || (*ch == '+')) && allowedSign)
+        {
+            allowedSign = FALSE;
+            allowedNumber = TRUE;
+            allowedComma = FALSE;
+            allowedSpace = FALSE;
+        }
+        else
+        {
+            return FAILURE;
+        }
+        ch++;
+    }
+
+    /*TODO: handle in for loop with strlen to insert it up*/
+    /*check if the last char is comma or sign*/
+    if ((*(ch - 1) == ',') || (*(ch - 1) == '-') || (*(ch - 1) == '+'))
+        return FAILURE;
+
+    return numOfDataElements;
+}
+
+/* return the appropriate size for the value */
+int sizeOfValue(char *dataType, char *value)
+{
+    int numOfElements;
+    numOfElements = isValidDirectiveValues(dataType, value);
+    return directiveTypeSize(dataType) * numOfElements;
+}
+
+dataSeg *getDataSegment()
+{
+    static dataSeg *seg;
+    if (seg == NULL)
+        seg = initDataSegment();
+    return seg;
+}
+
+int isExternal(char *str)
+{
+    return (strcmp(str, ".extern") == 0) ? SUCCESS : FAILURE;
 }
 
 int insertDirectiveTo(dataSeg *seg, char *directiveName, char *value)
@@ -79,10 +177,12 @@ int insertDirectiveTo(dataSeg *seg, char *directiveName, char *value)
     if (seg == NULL || directiveName == NULL || value == NULL)
         return FAILURE;
 
-    /* creating new OperetionNode for inserting it to list of operetionSegment */
+    /* get the value size */
+
+    /* creating new directiveNode for inserting it to list of dataSegment */
     newNode = (directiveNode *)malloc(sizeof(directiveNode));
 
-    /* handle copy of operetion name with null char */
+    /* handle copy of direvtive name with null char */
     directiveNameLength = strlen(directiveName);
     newNode->name = (char *)malloc(directiveNameLength + 1); /* +1 stends for '\0' */
     strcpy(newNode->name, directiveName);
@@ -93,6 +193,10 @@ int insertDirectiveTo(dataSeg *seg, char *directiveName, char *value)
     newNode->value = (char *)malloc(valLength + 1);
     strcpy(newNode->value, value);
     *(newNode->value + valLength) = '\0';
+
+    /* handle insertion of address */
+    newNode->address = seg->DC;
+    seg->DC += sizeOfValue(directiveName, value);
 
     /* set next pointer */
     newNode->next = NULL;
@@ -179,4 +283,21 @@ int destroyDataSeg(dataSeg *seg)
     removeAllDataFrom(seg);
     free(seg);
     return SUCCESS;
+}
+
+int moveAddressDataSeg(dataSeg *seg, int ICF)
+{
+    directiveNode *tmpNode;
+    if ((seg == NULL) || (seg->head_p == NULL))
+        return FAILURE;
+    else
+    {
+        tmpNode = seg->head_p;
+        while (tmpNode != NULL)
+        {
+            tmpNode->address += ICF;
+            tmpNode = tmpNode->next;
+        }
+        return SUCCESS;
+    }
 }

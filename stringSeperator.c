@@ -224,7 +224,7 @@ char *concenateToStringFrom(seperator *seperator, int wordIndex)
 
     length = 0;
     totalNumberOfWords = numberOfWords(seperator);
-    if (isEmpty(seperator) || (numberOfWords(seperator) < wordIndex))
+    if (isEmpty(seperator) || totalNumberOfWords < wordIndex)
         return NULL;
     else
     {
@@ -239,11 +239,11 @@ char *concenateToStringFrom(seperator *seperator, int wordIndex)
         resultedString = (char *)malloc(length);
 
         /* copy the first word to the string */
-        currentWord = getPointerToWord(seperator, 1);
+        currentWord = getPointerToWord(seperator, wordIndex);
         strcpy(resultedString, currentWord);
 
         /* cancentae the rest words */
-        for (i = 2; i <= totalNumberOfWords; i++)
+        for (i = wordIndex + 1; i <= totalNumberOfWords; i++)
         {
             /* set space between the words */
             strcat(resultedString, " ");

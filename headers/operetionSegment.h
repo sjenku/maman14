@@ -26,9 +26,12 @@ typedef struct operetionSegment
     int IC;
 } operetionSeg;
 
+operetionSeg *getOperetionSegment();
+char *toMachineCode(char *operetion);
 void printOperetionsSeg(operetionSeg *seg);
 operetionSeg *initOperetionSegment();
-int isValidOperation(const char *str);
+int isValidOperationName(const char *str);
+int isValidOperetionValue(const char *value);
 int destroyOperetionSeg(operetionSeg *seg);
 int insertOperetionTo(operetionSeg *seg, char *operetion, char *value);
 

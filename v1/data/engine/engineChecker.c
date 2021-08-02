@@ -21,7 +21,6 @@ int isComment(char *word)
          of the line that indecates that is a comment*/
             if (*ch == ';')
             {
-                logger(I, "Is a comment word => %s", word);
                 return SUCCESS;
             }
     }

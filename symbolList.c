@@ -111,7 +111,8 @@ int insertSymbol(symbolsList *symbols, char *symbolName, int address, char *attr
     /* set symbol's name without ':' instead of it replace it with '\0' */
     newNode->name = (char *)malloc(length);
     strcpy(newNode->name, symbolName);
-    *(newNode->name + length - 1) = '\0';
+    if (*(newNode->name + length - 1) == ':')
+        *(newNode->name + length - 1) = '\0';
 
     /* set attribute */
     length = strlen(attribute);
@@ -192,4 +193,23 @@ int destroySymbolsList(symbolsList *symbols)
     removeAllSymbolsFrom(symbols);
     free(symbols);
     return SUCCESS;
+}
+
+int moveAddressDataTypeSymbolsList(symbolsList *symbols, int ICF)
+{
+    symbolListNode *tmpNode;
+    if (symbols == NULL || symbols->head_p == NULL)
+        return FAILURE;
+    else
+    {
+        tmpNode = symbols->head_p;
+        while (tmpNode != NULL)
+        {
+            /* move the address value only for symbols with data attribute */
+            if (strcmp(tmpNode->attribute, ATTRIBUTE_DATA) == 0)
+                tmpNode->address += ICF;
+            tmpNode = tmpNode->next;
+        }
+        return SUCCESS;
+    }
 }
