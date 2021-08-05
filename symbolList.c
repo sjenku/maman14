@@ -234,13 +234,13 @@ symbolListNode *findSymbol(symbolsList *symbols, char *symbolName)
     return NULL;
 }
 
+/* this method return FAILURE if symbol not exist and SUCCESS if the attribute changed*/
 int changeAttribute(symbolsList *symbolList, char *symbolName, char *attribute)
 {
     symbolListNode *symbol;
     int length;
     symbol = findSymbol(symbolList, symbolName);
 
-    logger(D, "symbols name => %s", symbol->name);
     /* guard */
     if (symbol == NULL)
         return FAILURE;

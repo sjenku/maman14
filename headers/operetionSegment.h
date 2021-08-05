@@ -46,6 +46,7 @@ typedef struct operetionSegment
 
 /*private*/
 int isRegister(char *str);
+int isSignNumberOrNumber(char *str);
 
 /*public*/
 operetionSeg *getOperetionSegment();
@@ -53,10 +54,11 @@ int numberToBinary(int numValue, int sizeOfBits, char **codedString);
 int operetionRToCode(operetionR *oprR, char *codedString);
 char *fromOperetionToMachineCode(char *operetion, int address);
 void printOperetionsSeg(operetionSeg *seg);
+int isValidOperetionValue(const char *operetionName, char *values);
 int isValidOperetionValueR(char *values);
+int isValidOperetionValueJ(char *values);
 operetionSeg *initOperetionSegment();
 int isValidOperationName(const char *str);
-int isValidOperetionValue(const char *value);
 int destroyOperetionSeg(operetionSeg *seg);
 int insertOperetionTo(operetionSeg *seg, char *operetion, char *value);
 

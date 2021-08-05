@@ -1,0 +1,93 @@
+int isValidOperetionValueI(char *values)
+{
+    /* variables */
+    seperator *sep;
+    char *ch;
+
+    /* initial */
+    sep = initSeprator();
+
+    /* seperete the values to individuals words */
+    appendStringWithSpace(sep, values);
+    /* check if there is 3 operands */
+    if (numberOfWords(sep) != 1)
+    {
+        destroySeperator(sep);
+        return FAILURE;
+    }
+    /* there is correct number of operands */
+    else
+    {
+        ch = getPointerToWord(sep, 1);
+        /* check if it register sign */
+        if ((*ch) == '$')
+        {
+            if (!isRegister(ch))
+            {
+                destroySeperator(sep);
+                return FAILURE;
+            }
+        }
+        /* check if it's valid symbol name */
+        else
+        {
+            if (!isNumbersOrLetters(ch))
+            {
+                destroySeperator(sep);
+                return FAILURE;
+            }
+        }
+        /* it's valid register or valid symbol name*/
+        destroySeperator(sep);
+        return SUCCESS;
+    }
+    destroySeperator(sep);
+    return FAILURE;
+}
+
+int isValidOperetionValueJ(char *values)
+{
+    /* variables */
+    seperator *sep;
+    char *ch;
+
+    /* initial */
+    sep = initSeprator();
+
+    /* seperete the values to individuals words */
+    appendStringWithSpace(sep, values);
+    /* check if there is 3 operands */
+    if (numberOfWords(sep) != 1)
+    {
+        destroySeperator(sep);
+        return FAILURE;
+    }
+    /* there is correct number of operands */
+    else
+    {
+        ch = getPointerToWord(sep, 1);
+        /* check if it register sign */
+        if ((*ch) == '$')
+        {
+            if (!isRegister(ch))
+            {
+                destroySeperator(sep);
+                return FAILURE;
+            }
+        }
+        /* check if it's valid symbol name */
+        else
+        {
+            if (!isNumbersOrLetters(ch))
+            {
+                destroySeperator(sep);
+                return FAILURE;
+            }
+        }
+        /* it's valid register or valid symbol name*/
+        destroySeperator(sep);
+        return SUCCESS;
+    }
+    destroySeperator(sep);
+    return FAILURE;
+}

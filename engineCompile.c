@@ -114,12 +114,15 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
 /* ============================ SECOND WORKFLOW ================================= */
 void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
 {
-    char *firstWord, *currentWord;
+    char *firstWord, *currentWord, *symbolName;
     seperator *seperator;
+    symbolsList *symbolList;
     int wordIndex;
     /* create seperator that is seperating the line into individuals words */
     seperator = initSeprator();
     appendStringWithSpace(seperator, line);
+    /* get the pointer to the symbolsList */
+    symbolList = getSymbolsList();
 
     /* set index to know on witch word we looking at */
     wordIndex = 1;
@@ -132,7 +135,7 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
     if (currentWord != NULL && !isComment(currentWord))
     {
         /* check if the word is symbol,if it does, move to the next word */
-        if (isValidSymbolName(currentWord))
+        if (isValidSymbolName(currentWord) == SUCCESS)
         {
             wordIndex++;
             currentWord = getPointerToWord(seperator, wordIndex);
@@ -146,9 +149,12 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
         {
             if (isEntry(currentWord))
             {
-                currentWord = getPointerToWord(seperator, wordIndex + 1);
-                //TODO: insert to the symbol in the symbol list the entry attribute
+                symbolName = getPointerToWord(seperator, wordIndex + 1);
+                changeAttribute(symbolList, symbolName, ATTRIBUTE_DATA_ENTRY);
             }
+            else
+            {
+                        }
         }
     }
 END:

@@ -39,6 +39,7 @@ int totalOperations();
 int removeFirstOperetion(operetionSeg *seg);
 int removeAllOperetionsFrom(operetionSeg *seg);
 operetionInfo *getOperetionInfo(char *operetionName);
+int isNumbersOrLetters(char *str);
 int isRegister(char *str);
 
 /* Public */
@@ -111,6 +112,148 @@ int operetionRToCode(operetionR *oprR, char *codedString)
     return status;
 }
 
+int isValidOperetionValue(const char *operetionName, char *values)
+{
+    seperator *sep;
+    int i, numberOfValues, success;
+    int length;
+    /* guard */
+    if (operetionName == NULL || values == NULL)
+        return FAILURE;
+
+    /* initial values */
+    length = totalOperations();
+    sep = initSeprator();
+
+    /* when seperate with comma it's check that is no double comma and comma and begining and
+    in the end */
+    success = appendStringWithComma(sep, values);
+    if (!success)
+        return FAILURE;
+
+    numberOfValues = numberOfWords(sep);
+    logger(D, "hey");
+    for (i = 0; (i < length) && strcmp(validOperations[i].name, operetionName) != 0; i++)
+        ;
+    logger(D, "here3");
+    /* not found the operetion name in presaved operetion names */
+    if (i == length)
+        return FAILURE;
+
+    switch (i)
+    { /* logic arithmetic R operetions */
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+        logger(D, "here1");
+        if (numberOfValues != 3 ||
+            !isRegister(getPointerToWord(sep, 1)) ||
+            !isRegister(getPointerToWord(sep, 2)) ||
+            !isRegister(getPointerToWord(sep, 3)))
+            return FAILURE;
+        else
+            return SUCCESS;
+        break;
+        /* copy operetions */
+    case 5:
+    case 6:
+    case 7:
+        logger(D, "here2");
+        if (numberOfValues != 2 ||
+            !isRegister(getPointerToWord(sep, 1)) ||
+            !isRegister(getPointerToWord(sep, 2)))
+            return FAILURE;
+        else
+            return SUCCESS;
+        break;
+        /*logic arithmetic I */
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+        logger(D, "here4");
+        if (numberOfValues != 3 ||
+            !isRegister(getPointerToWord(sep, 1)) ||
+            !isSignNumberOrNumber(getPointerToWord(sep, 2)) ||
+            !isRegister(getPointerToWord(sep, 3)))
+            return FAILURE;
+        else
+            return SUCCESS;
+        break;
+        /* conditional brancing */
+    case 13:
+    case 14:
+    case 15:
+    case 16:
+        logger(D, "here5");
+        if (numberOfValues != 3 ||
+            !isRegister(getPointerToWord(sep, 1)) ||
+            !isRegister(getPointerToWord(sep, 2)) ||
+            !isNumbersOrLetters(getPointerToWord(sep, 3)))
+            return FAILURE;
+        else
+            return SUCCESS;
+        break;
+        /*TODO:COMPLETE*/
+    }
+    return FAILURE;
+}
+
+int isSignNumberOrNumber(char *str)
+{
+    int flagSing;
+    char *ch;
+    ch = str;
+
+    flagSing = FALSE;
+    while (*ch != '\0')
+    {
+        if ((*ch) == '-' || (*ch) == '+')
+        {
+            if (flagSing == TRUE)
+                return FAILURE;
+            else
+            {
+                flagSing = TRUE;
+                ch++;
+            }
+        }
+        else if (!isnumber(*ch))
+        {
+            return FAILURE;
+        }
+        else
+        {
+            ch++;
+            flagSing = FALSE;
+        }
+    }
+    /* check the last number */
+    if (flagSing == TRUE)
+        return FAILURE;
+    else
+        return SUCCESS;
+}
+
+int isNumbersOrLetters(char *str)
+{
+    char *ch;
+    int goodChar;
+    ch = str;
+
+    while (*ch != '\0')
+    {
+        goodChar = (isnumber(*ch) || ((*ch) >= 'a' && (*ch) <= 'z') || ((*ch) >= 'A' && (*ch) <= 'Z'));
+        if (!goodChar)
+            return FAILURE;
+        ch++;
+    }
+    return SUCCESS;
+}
+
 int isValidOperetionValueR(char *values)
 {
     /* variables */
@@ -181,9 +324,11 @@ int isRegister(char *str)
             ch--;
 
         /* remaining till the $ sign should be number,check for it */
+        /* TODO: FIX BUG - if there is 2 sign of dollars it would show that valid */
         while (*ch != '$')
         {
             /* check for each ch that it's a number */
+            logger(D, "ch => %c", *ch);
             if (!isnumber(*ch))
                 return FAILURE;
             ch--;
@@ -237,19 +382,7 @@ int isValidOperationName(const char *str)
     }
     return FAILURE;
 }
-/*
-int isValidOperetionValue(const char *value)
-{
-    int i;
-    int length = totalOperations();
-    for (i = 0; i < length; i++)
-    {
-        if (strcmp(validOperations[i].name, value) == 0)
-            return SUCCESS;
-    }
-    return FAILURE;
-}
-*/
+
 int totalOperations()
 {
     return sizeof(validOperations) / sizeof(operetionInfo);

@@ -13,28 +13,41 @@ void check_leaks();
 
 int main(int argc, char *argv[])
 {
-
-    /* opcode|rs|rt|rd|funct|empty */
     dataSeg *dataSeg;
     operetionSeg *oprSeg;
     symbolsList *symbolsList;
 
+    loggerOn(I);
+    loggerOn(D);
+
     dataSeg = getDataSegment();
     oprSeg = getOperetionSegment();
     symbolsList = getSymbolsList();
-    loggerOn(I);
-    loggerOn(D);
     runEngine(argc, argv);
 
-    changeAttribute(symbolsList, "MAIN", ATTRIBUTE_DATA_ENTRY);
+    isValidOperetionValue("beq", "$2,$4") ? logger(D, "Valid") : logger(D, "Not valid");
     printSymbols(symbolsList);
     destroyDataSeg(dataSeg);
     destroySymbolsList(symbolsList);
     destroyOperetionSeg(oprSeg);
-    check_leaks();
+
+    /* check_leaks(); */
     return 0;
 }
 
+// /* opcode|rs|rt|rd|funct|empty */
+// dataSeg *dataSeg;
+// operetionSeg *oprSeg;
+// symbolsList *symbolsList;
+
+// dataSeg = getDataSegment();
+// oprSeg = getOperetionSegment();
+// symbolsList = getSymbolsList();
+
+// printSymbols(symbolsList);
+// destroyDataSeg(dataSeg);
+// destroySymbolsList(symbolsList);
+// destroyOperetionSeg(oprSeg);
 // int sizeOfBits, i, num, k;
 // sizeOfBits = 5;
 // i = 0;
