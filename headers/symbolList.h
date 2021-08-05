@@ -4,6 +4,7 @@
 #define ATTRIBUTE_CODE "code"
 #define ATTRIBUTE_DATA "data"
 #define ATTRIBUTE_EXTERNAL "external"
+#define ATTRIBUTE_DATA_ENTRY "data,entry"
 
 typedef struct symbolListNode
 {
@@ -22,6 +23,7 @@ typedef struct symbolsList
 symbolsList *initSymbolsList();
 symbolsList *getSymbolsList();
 char *symbolErrorReason(int errorStatus);
+int changeAttribute(symbolsList *symbolList, char *symbolName, char *attribute);
 int isSymbolExist(symbolsList *symbols, char *symbolName);
 int isValidSymbolName(char *str);
 int moveAddressDataTypeSymbolsList(symbolsList *symbols, int amount);

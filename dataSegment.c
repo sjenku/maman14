@@ -161,6 +161,11 @@ dataSeg *getDataSegment()
     return seg;
 }
 
+int isEntry(char *str)
+{
+    return (strcmp(str, ".entry") == 0) ? SUCCESS : FAILURE;
+}
+
 int isExternal(char *str)
 {
     return (strcmp(str, ".extern") == 0) ? SUCCESS : FAILURE;

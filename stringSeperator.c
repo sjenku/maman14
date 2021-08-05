@@ -8,12 +8,68 @@
 int appendWord(seperator *seperator, char *word);
 
 /* Public */
-void appendString(seperator *seperator, char *str)
+/* this method seperating the string into individual words seperated by comma,
+note: if error eccures it will throw FAILURE status and till error accured
+the word that been without an error,would be inserted into the seperator */
+int appendStringWithComma(seperator *seperator, char *str)
+{
+    char *ch;
+    int i, charCounter, indexLastComma;
+    int totalChars, commaFlag;
+    totalChars = strlen(str);
+
+    commaFlag = TRUE;
+    /* Seperate the words */
+    for (ch = str, i = 0, charCounter = 0; i < totalChars + 1; ch++, i++)
+    {
+        /* indicates it's a comma so it's end of word */
+        if (((*ch) == ',' || (*ch) == '\0') && (commaFlag == FALSE))
+        {
+            commaFlag = TRUE;
+            indexLastComma = i;
+            /*charCounter != 0 means that previuos chars isn't comma*/
+            if (charCounter != 0)
+            {
+                /*Creating new word buffer,note:the memory will be free in the dequeue method.*/
+                char *newWord = (char *)malloc(charCounter + 1);
+                /*copy the word from the str with relative indexes*/
+                strncpy(newWord, str + i - charCounter, charCounter);
+                *(newWord + charCounter) = '\0'; /*end of the word*/
+                appendWord(seperator, newWord);
+                /*after finish adding the word , zero the char counter*/
+                charCounter = 0;
+                /*free memory*/
+                free(newWord);
+            }
+        }
+        /* it's mean that the char before is a comma and that is not allowed */
+        else if ((*ch) == ',' && commaFlag)
+        {
+            return FAILURE;
+        }
+        /* it's not a comma */
+        else
+        {
+            charCounter++;
+            commaFlag = FALSE;
+        }
+    }
+    /* check if the last char is 'comma' ,if it is return failure,otherwise return success */
+    for (i = totalChars - 1; isspace(str[i]); i--)
+        ;
+    if (str[i] == ',')
+        return FAILURE;
+    else
+        return SUCCESS;
+}
+
+void appendStringWithSpace(seperator *seperator, char *str)
 {
     char *ch;
     int i, charCounter;
-    int totalChars;
+    int totalChars, condition;
     totalChars = strlen(str);
+
     /* Seperate the words */
     for (ch = str, i = 0, charCounter = 0; i < totalChars + 1; ch++, i++)
     {
@@ -129,7 +185,7 @@ int lengthFirstWord(seperator *sep)
 }
 
 /* return the word from the list according to the wordNumber index 
-@Param- wordNumber is index of the word in the list */
+@Param- wordNumber is index of the word in the list ,the first word start at index 1*/
 
 char *getPointerToWord(seperator *seperator, int wordNumber)
 {

@@ -1,7 +1,9 @@
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "headers/operetionSegment.h"
 #include "headers/tools.h"
+#include "headers/stringSeperator.h"
 
 static operetionInfo validOperations[] = {
     {"add", 'R', 1, 0},
@@ -37,23 +39,162 @@ int totalOperations();
 int removeFirstOperetion(operetionSeg *seg);
 int removeAllOperetionsFrom(operetionSeg *seg);
 operetionInfo *getOperetionInfo(char *operetionName);
+int isRegister(char *str);
 
 /* Public */
-char *toMachineCode(char *operetionName)
+int numberToBinary(int numValue, int sizeOfBits, char **codedString)
 {
-    /* retrieve the info about this kind of operetion */
-    operetionInfo *oprInfo;
-    oprInfo = getOperetionInfo(operetionName);
-    switch (oprInfo->type)
+    int k, indexString, i;
+    /* check valid param and that codedString have enough memory to hold the coded num */
+    if (codedString == NULL)
+        return FAILURE;
+    logger(I, "enterd numberToBinary");
+
+    for (indexString = 0, i = sizeOfBits - 1; i >= 0; i--, indexString++)
     {
-    case 'R':
-        return "It's an R command";
-    case 'J':
-        return "It's an J command";
-    case 'I':
-        return "It's an I command";
-    default:
-        return "no type";
+        k = numValue >> i;
+        if (k & 1)
+            (*codedString)[indexString] = '1';
+        else
+            (*codedString)[indexString] = '0';
+    }
+    (*codedString)[indexString + 1] = '\0';
+    logger(I, "result => %s", *codedString);
+    return SUCCESS;
+}
+
+int operetionRToCode(operetionR *oprR, char *codedString)
+{
+    /* allocating temperory memory */
+    int status;
+    char *emptyStr, *opcodeStr, *functStr, *rdStr, *rtStr, *rsStr;
+    if (oprR == NULL)
+        return FAILURE;
+
+    emptyStr = (char *)malloc(R_CODE_EMPTY_SIZE + 1); /* +1 stends for null char */
+    opcodeStr = (char *)malloc(R_CODE_OPCODE_SIZE + 1);
+    functStr = (char *)malloc(R_CODE_FUNCT_SIZE + 1);
+    rdStr = (char *)malloc(R_CODE_RD_SIZE + 1);
+    rtStr = (char *)malloc(R_CODE_RT_SIZE + 1);
+    rsStr = (char *)malloc(R_CODE_RS_SIZE + 1);
+
+    /* code to binary each section and check if it was succesefully */
+    if (numberToBinary(oprR->opcode, R_CODE_OPCODE_SIZE, &opcodeStr) &&
+        numberToBinary(oprR->funct, R_CODE_FUNCT_SIZE, &functStr) &&
+        numberToBinary(oprR->rd, R_CODE_RD_SIZE, &rdStr) &&
+        numberToBinary(oprR->rt, R_CODE_RT_SIZE, &rtStr) &&
+        numberToBinary(oprR->rs, R_CODE_RS_SIZE, &rsStr) &&
+        numberToBinary(oprR->empty, R_CODE_EMPTY_SIZE, &emptyStr))
+    {
+        /* create the coded string */
+        strcpy(codedString, opcodeStr);
+        strcat(codedString, rsStr);
+        strcat(codedString, rtStr);
+        strcat(codedString, rdStr);
+        strcat(codedString, functStr);
+        strcat(codedString, emptyStr);
+        strcat(codedString, "\0");
+
+        status = SUCCESS;
+    }
+    else
+    {
+        status = FAILURE;
+    }
+    /* free memory */
+    free(opcodeStr);
+    free(rsStr);
+    free(rtStr);
+    free(rdStr);
+    free(functStr);
+    free(emptyStr);
+    return status;
+}
+
+int isValidOperetionValueR(char *values)
+{
+    /* variables */
+    seperator *sep;
+    char *value;
+    int i;
+
+    /* initial */
+    sep = initSeprator();
+
+    /* seperete the values to individuals words */
+    if (appendStringWithComma(sep, values))
+    {
+        /* check if there is 3 operands */
+        if (numberOfWords(sep) != 3)
+        {
+            destroySeperator(sep);
+            return FAILURE;
+        }
+        /* there is correct number of operands */
+        else
+        {
+            /* iterate threw each of them and check if it's register*/
+            for (i = 0; i < 3; i++)
+            {
+                value = getPointerToWord(sep, i + 1);
+                if (!isRegister(value))
+                {
+                    destroySeperator(sep);
+                    return FAILURE;
+                }
+            }
+            destroySeperator(sep);
+            return SUCCESS;
+        }
+    }
+    destroySeperator(sep);
+    return FAILURE;
+}
+
+int isRegister(char *str)
+{
+    /* variables */
+    char *ch;
+    int number, length, factor;
+
+    /* initiate variables */
+    ch = str;
+    length = strlen(str);
+    factor = 1;
+
+    /* ignore the space in the begining */
+    while (isspace(*ch))
+        ch++;
+
+    /* check the first letter is '$' sign */
+    if ((*ch) != '$')
+        return FAILURE;
+
+    /* if it's dollar sing go to else block */
+    else
+    {
+        /* set ch to point on the last char */
+        ch = str + length - 1;
+
+        /* ignore the space from the end of the str */
+        while (isspace(*ch))
+            ch--;
+
+        /* remaining till the $ sign should be number,check for it */
+        while (*ch != '$')
+        {
+            /* check for each ch that it's a number */
+            if (!isnumber(*ch))
+                return FAILURE;
+            ch--;
+        }
+
+        number = atoi(ch + 1);
+        /* register can be from 1 till 32 */
+        if (number >= 1 && number <= MAX_REGISTER)
+            return SUCCESS;
+        else
+            return FAILURE;
     }
 }
 
@@ -96,6 +237,7 @@ int isValidOperationName(const char *str)
     }
     return FAILURE;
 }
+/*
 int isValidOperetionValue(const char *value)
 {
     int i;
@@ -107,7 +249,7 @@ int isValidOperetionValue(const char *value)
     }
     return FAILURE;
 }
-
+*/
 int totalOperations()
 {
     return sizeof(validOperations) / sizeof(operetionInfo);

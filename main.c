@@ -14,9 +14,24 @@ void check_leaks();
 int main(int argc, char *argv[])
 {
 
+    /* opcode|rs|rt|rd|funct|empty */
+    dataSeg *dataSeg;
+    operetionSeg *oprSeg;
+    symbolsList *symbolsList;
+
+    dataSeg = getDataSegment();
+    oprSeg = getOperetionSegment();
+    symbolsList = getSymbolsList();
     loggerOn(I);
+    loggerOn(D);
     runEngine(argc, argv);
 
+    changeAttribute(symbolsList, "MAIN", ATTRIBUTE_DATA_ENTRY);
+    printSymbols(symbolsList);
+    destroyDataSeg(dataSeg);
+    destroySymbolsList(symbolsList);
+    destroyOperetionSeg(oprSeg);
+    check_leaks();
     return 0;
 }
 

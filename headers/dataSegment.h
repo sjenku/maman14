@@ -24,6 +24,7 @@ typedef struct dataSegment
 
 dataSeg *getDataSegment();
 int isExternal(char *str);
+int isEntry(char *str);
 int sizeOfValue(char *dataType, char *value);
 void printDataSeg(dataSeg *seg);
 dataSeg *initDataSegment();

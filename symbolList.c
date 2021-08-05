@@ -213,3 +213,49 @@ int moveAddressDataTypeSymbolsList(symbolsList *symbols, int ICF)
         return SUCCESS;
     }
 }
+
+symbolListNode *findSymbol(symbolsList *symbols, char *symbolName)
+{
+    symbolListNode *tmpNode;
+    /* guard */
+    if (symbols == NULL || symbols->head_p == NULL)
+        return NULL;
+
+    tmpNode = symbols->head_p;
+    /* iterate threw the list of symbols */
+    while (tmpNode != NULL)
+    {
+        /* compare the name of symbol with the param symbolName */
+        if (strcmp(tmpNode->name, symbolName) == 0)
+            return tmpNode;
+        tmpNode = tmpNode->next;
+    }
+    /* not found */
+    return NULL;
+}
+
+int changeAttribute(symbolsList *symbolList, char *symbolName, char *attribute)
+{
+    symbolListNode *symbol;
+    int length;
+    symbol = findSymbol(symbolList, symbolName);
+
+    logger(D, "symbols name => %s", symbol->name);
+    /* guard */
+    if (symbol == NULL)
+        return FAILURE;
+
+    /* free memory of prev attribute */
+    free(symbol->attribute);
+
+    /* allocate memory for the new attribute val */
+    length = strlen(attribute);
+    symbol->attribute = (char *)malloc(length + 1); /* +1 stends for null char */
+
+    /* copy to the new attribute */
+    strcpy(symbol->attribute, attribute);
+    /* set the null char */
+    symbol->attribute[length] = '\0';
+
+    return SUCCESS;
+}

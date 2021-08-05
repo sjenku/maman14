@@ -46,7 +46,7 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
     operetionSeg = getOperetionSegment();
     /* create seperator that is seperating the line into individuals words */
     seperator = initSeprator();
-    appendString(seperator, line);
+    appendStringWithSpace(seperator, line);
 
     /* set pointer to the first word */
     firstWord = getPointerToWord(seperator, 1);
@@ -101,7 +101,6 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
             {
                 insertSymbol(symbolsList, firstWord, operetionSeg->IC, ATTRIBUTE_CODE);
             }
-            logger(I, toMachineCode(currentWord, operetionSeg->IC));
             insertOperetionTo(operetionSeg, currentWord, restLine);
         }
         /* free memory */
@@ -112,8 +111,48 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
     destroySeperator(seperator);
 }
 
+/* ============================ SECOND WORKFLOW ================================= */
 void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
 {
+    char *firstWord, *currentWord;
+    seperator *seperator;
+    int wordIndex;
+    /* create seperator that is seperating the line into individuals words */
+    seperator = initSeprator();
+    appendStringWithSpace(seperator, line);
+
+    /* set index to know on witch word we looking at */
+    wordIndex = 1;
+
+    /* set pointer to the first word */
+    firstWord = getPointerToWord(seperator, 1);
+    currentWord = getPointerToWord(seperator, wordIndex);
+
+    /* if first word is NULL it's mean there was an empty line */
+    if (currentWord != NULL && !isComment(currentWord))
+    {
+        /* check if the word is symbol,if it does, move to the next word */
+        if (isValidSymbolName(currentWord))
+        {
+            wordIndex++;
+            currentWord = getPointerToWord(seperator, wordIndex);
+        }
+
+        if (isValidDirectiveName(currentWord))
+        {
+            goto END;
+        }
+        else
+        {
+            if (isEntry(currentWord))
+            {
+                currentWord = getPointerToWord(seperator, wordIndex + 1);
+                //TODO: insert to the symbol in the symbol list the entry attribute
+            }
+        }
+    }
+END:
+    destroySeperator(seperator);
 }
 
 void runEngine(int argc, char *argv[])
@@ -128,7 +167,7 @@ void runEngine(int argc, char *argv[])
     symbolsList = getSymbolsList();
     dataSeg = getDataSegment();
 
-    /*Set of functions that will be implemented on each line of the file*/
+    /* Set of functions that will be implemented on each line of the file*/
     rulesArr[0] = engineWorkFlowForLineFirst;
     runRulessOnLinesOfFile(argc, argv, TOTAL_RULES, rulesArr);
 
@@ -136,6 +175,10 @@ void runEngine(int argc, char *argv[])
     ICF = operetionSeg->IC;
     moveAddressDataSeg(dataSeg, ICF);
     moveAddressDataTypeSymbolsList(symbolsList, ICF);
+
+    /* Start Second Workflow */
+    rulesArr[0] = engineWorkFlowForLineSecond;
+    runRulessOnLinesOfFile(argc, argv, TOTAL_RULES, rulesArr);
 }
 
 int isComment(char *word)

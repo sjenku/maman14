@@ -2,6 +2,24 @@
 #define _OPERETION_SEGMENT_H
 
 #define IC_INCREASER 4
+#define R_CODE_BUFFER_SIZE 32
+#define R_CODE_EMPTY_SIZE 6
+#define R_CODE_FUNCT_SIZE 5
+#define R_CODE_RD_SIZE 5
+#define R_CODE_RT_SIZE 5
+#define R_CODE_RS_SIZE 5
+#define R_CODE_OPCODE_SIZE 6
+#define MAX_REGISTER 32
+
+typedef struct operetionR
+{
+    unsigned int empty : R_CODE_EMPTY_SIZE;
+    unsigned int funct : R_CODE_FUNCT_SIZE;
+    unsigned int rd : R_CODE_RD_SIZE;
+    unsigned int rt : R_CODE_RT_SIZE;
+    unsigned int rs : R_CODE_RS_SIZE;
+    unsigned int opcode : R_CODE_OPCODE_SIZE;
+} operetionR;
 
 typedef struct operetionInfo
 {
@@ -26,9 +44,16 @@ typedef struct operetionSegment
     int IC;
 } operetionSeg;
 
+/*private*/
+int isRegister(char *str);
+
+/*public*/
 operetionSeg *getOperetionSegment();
-char *toMachineCode(char *operetion);
+int numberToBinary(int numValue, int sizeOfBits, char **codedString);
+int operetionRToCode(operetionR *oprR, char *codedString);
+char *fromOperetionToMachineCode(char *operetion, int address);
 void printOperetionsSeg(operetionSeg *seg);
+int isValidOperetionValueR(char *values);
 operetionSeg *initOperetionSegment();
 int isValidOperationName(const char *str);
 int isValidOperetionValue(const char *value);

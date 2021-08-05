@@ -1,6 +1,9 @@
 #ifndef _STRING_SEPERATOR_H
 #define _STRING_SEPERATOR_H
 
+#define SEPERETOR_METHOD_SPACE 1
+#define SEPERETOR_METHOD_COMMA 2
+
 typedef struct seperatorNode
 {
     char *word;
@@ -12,7 +15,8 @@ typedef struct seperator
     seperatorNode *head_p;
 } seperator;
 
-void appendString(seperator *seperator, char *str);
+void appendStringWithSpace(seperator *seperator, char *str);
+int appendStringWithComma(seperator *seperator, char *str);
 seperator *initSeprator();
 char *getPointerToWord(seperator *seperator, int wordNumber);
 int numberOfWords(seperator *seperator);
