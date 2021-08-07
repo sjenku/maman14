@@ -13,6 +13,7 @@ void check_leaks();
 
 int main(int argc, char *argv[])
 {
+
     dataSeg *dataSeg;
     operetionSeg *oprSeg;
     symbolsList *symbolsList;
@@ -25,13 +26,19 @@ int main(int argc, char *argv[])
     symbolsList = getSymbolsList();
     runEngine(argc, argv);
 
-    isValidOperetionValue("beq", "$2,$4") ? logger(D, "Valid") : logger(D, "Not valid");
     printSymbols(symbolsList);
     destroyDataSeg(dataSeg);
     destroySymbolsList(symbolsList);
     destroyOperetionSeg(oprSeg);
 
-    /* check_leaks(); */
+    /*char *str;
+    str = (char *)malloc(26);
+    numberToBinary(4, 25, &str);
+    logger(D, "str => %s", str);
+    free(str);
+    */
+
+    check_leaks();
     return 0;
 }
 

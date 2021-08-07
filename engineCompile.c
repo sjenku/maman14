@@ -116,17 +116,20 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
 {
     char *firstWord, *currentWord, *symbolName;
     seperator *seperator;
+    operetionSeg *operetionSeg;
     symbolsList *symbolList;
     int wordIndex;
+    /* set index that indicates which operetion to get from operetion segment */
+    static int operetionIndex = 0;
     /* create seperator that is seperating the line into individuals words */
     seperator = initSeprator();
     appendStringWithSpace(seperator, line);
     /* get the pointer to the symbolsList */
     symbolList = getSymbolsList();
-
+    /* get the pointer to the saved operetions from the first workflow */
+    operetionSeg = getOperetionSegment();
     /* set index to know on witch word we looking at */
     wordIndex = 1;
-
     /* set pointer to the first word */
     firstWord = getPointerToWord(seperator, 1);
     currentWord = getPointerToWord(seperator, wordIndex);
@@ -152,9 +155,12 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
                 symbolName = getPointerToWord(seperator, wordIndex + 1);
                 changeAttribute(symbolList, symbolName, ATTRIBUTE_DATA_ENTRY);
             }
+            /* it's operetion , code it to binary and print it*/
             else
             {
-                        }
+                codeOperetionToBinary(operetionSeg, operetionIndex);
+                operetionIndex++;
+            }
         }
     }
 END:

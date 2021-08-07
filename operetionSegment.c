@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include "headers/operetionSegment.h"
 #include "headers/tools.h"
+#include "headers/symbolList.h"
 #include "headers/stringSeperator.h"
 
 static operetionInfo validOperations[] = {
@@ -36,41 +37,21 @@ static operetionInfo validOperations[] = {
 
 /* Private */
 int totalOperations();
+int registerToInt(char *str);
 int removeFirstOperetion(operetionSeg *seg);
 int removeAllOperetionsFrom(operetionSeg *seg);
 operetionInfo *getOperetionInfo(char *operetionName);
-int isNumbersOrLetters(char *str);
-int isRegister(char *str);
+operetionNode *getPointToOpertionFromSeg(operetionSeg *seg, int index);
+int totalOperetionsInSeg(operetionSeg *seg);
 
 /* Public */
-int numberToBinary(int numValue, int sizeOfBits, char **codedString)
-{
-    int k, indexString, i;
-    /* check valid param and that codedString have enough memory to hold the coded num */
-    if (codedString == NULL)
-        return FAILURE;
-    logger(I, "enterd numberToBinary");
 
-    for (indexString = 0, i = sizeOfBits - 1; i >= 0; i--, indexString++)
-    {
-        k = numValue >> i;
-        if (k & 1)
-            (*codedString)[indexString] = '1';
-        else
-            (*codedString)[indexString] = '0';
-    }
-    (*codedString)[indexString + 1] = '\0';
-    logger(I, "result => %s", *codedString);
-    return SUCCESS;
-}
-
-int operetionRToCode(operetionR *oprR, char *codedString)
+/* the size for codedString have to be 'CODE_BUFFER_SIZE' + 1 to hold null char */
+int operetionRToCode(int opcode, int funct, int rd, int rt, int rs, char **codedString)
 {
     /* allocating temperory memory */
     int status;
     char *emptyStr, *opcodeStr, *functStr, *rdStr, *rtStr, *rsStr;
-    if (oprR == NULL)
-        return FAILURE;
 
     emptyStr = (char *)malloc(R_CODE_EMPTY_SIZE + 1); /* +1 stends for null char */
     opcodeStr = (char *)malloc(R_CODE_OPCODE_SIZE + 1);
@@ -80,21 +61,21 @@ int operetionRToCode(operetionR *oprR, char *codedString)
     rsStr = (char *)malloc(R_CODE_RS_SIZE + 1);
 
     /* code to binary each section and check if it was succesefully */
-    if (numberToBinary(oprR->opcode, R_CODE_OPCODE_SIZE, &opcodeStr) &&
-        numberToBinary(oprR->funct, R_CODE_FUNCT_SIZE, &functStr) &&
-        numberToBinary(oprR->rd, R_CODE_RD_SIZE, &rdStr) &&
-        numberToBinary(oprR->rt, R_CODE_RT_SIZE, &rtStr) &&
-        numberToBinary(oprR->rs, R_CODE_RS_SIZE, &rsStr) &&
-        numberToBinary(oprR->empty, R_CODE_EMPTY_SIZE, &emptyStr))
+    if (numberToBinary(opcode, R_CODE_OPCODE_SIZE, &opcodeStr) &&
+        numberToBinary(funct, R_CODE_FUNCT_SIZE, &functStr) &&
+        numberToBinary(rd, R_CODE_RD_SIZE, &rdStr) &&
+        numberToBinary(rt, R_CODE_RT_SIZE, &rtStr) &&
+        numberToBinary(rs, R_CODE_RS_SIZE, &rsStr) &&
+        numberToBinary(0, R_CODE_EMPTY_SIZE, &emptyStr))
     {
         /* create the coded string */
-        strcpy(codedString, opcodeStr);
-        strcat(codedString, rsStr);
-        strcat(codedString, rtStr);
-        strcat(codedString, rdStr);
-        strcat(codedString, functStr);
-        strcat(codedString, emptyStr);
-        strcat(codedString, "\0");
+        strcpy(*codedString, opcodeStr);
+        strcat(*codedString, rsStr);
+        strcat(*codedString, rtStr);
+        strcat(*codedString, rdStr);
+        strcat(*codedString, functStr);
+        strcat(*codedString, emptyStr);
+        strcat(*codedString, "\0");
 
         status = SUCCESS;
     }
@@ -109,6 +90,79 @@ int operetionRToCode(operetionR *oprR, char *codedString)
     free(rdStr);
     free(functStr);
     free(emptyStr);
+    return status;
+}
+
+/* the size for codedString have to be 'CODE_BUFFER_SIZE' + 1 to hold null char */
+int operetionIToCode(int opcode, int rs, int rt, int immed, char **codedString)
+{
+    /* allocating temperory memory */
+    int status;
+    char *opcodeStr, *rsStr, *rtStr, *immedStr;
+
+    /* +1 stends for null char */
+    opcodeStr = (char *)malloc(I_CODE_OPCODE_SIZE + 1);
+    rsStr = (char *)malloc(I_CODE_RS_SIZE + 1);
+    rtStr = (char *)malloc(I_CODE_RT_SIZE + 1);
+    immedStr = (char *)malloc(I_CODE_IMMED_SIZE + 1);
+
+    /* code to binary each section and check if it was succesefully */
+    if (numberToBinary(opcode, I_CODE_OPCODE_SIZE, &opcodeStr) &&
+        numberToBinary(rs, I_CODE_RS_SIZE, &rsStr) &&
+        numberToBinary(rt, I_CODE_RT_SIZE, &rtStr) &&
+        numberToBinary(immed, I_CODE_IMMED_SIZE, &immedStr))
+    {
+        /* create the coded string */
+        strcpy(*codedString, opcodeStr);
+        strcat(*codedString, rsStr);
+        strcat(*codedString, rtStr);
+        strcat(*codedString, immedStr);
+        strcat(*codedString, "\0");
+        status = SUCCESS;
+    }
+    else
+    {
+        status = FAILURE;
+    }
+    /* free memory */
+    free(opcodeStr);
+    free(rsStr);
+    free(rtStr);
+    free(immedStr);
+    return status;
+}
+
+/* the size for codedString have to be 'CODE_BUFFER_SIZE' + 1 to hold null char */
+int operetionJToCode(int opcode, int reg, int address, char **codedString)
+{
+    /* allocating temperory memory */
+    int status;
+    char *opcodeStr, *regStr, *addressStr;
+
+    /* +1 stends for null char */
+    opcodeStr = (char *)malloc(J_CODE_OPCODE_SIZE + 1);
+    regStr = (char *)malloc(J_CODE_REG_SIZE + 1);
+    addressStr = (char *)malloc(J_CODE_ADDRESS_SIZE + 1);
+    /* code to binary each section and check if it was succesefully */
+    if (numberToBinary(opcode, J_CODE_OPCODE_SIZE, &opcodeStr) &&
+        numberToBinary(reg, J_CODE_REG_SIZE, &regStr) &&
+        numberToBinary(address, J_CODE_ADDRESS_SIZE, &addressStr))
+    {
+        /* create the coded string */
+        strcpy(*codedString, opcodeStr);
+        strcat(*codedString, regStr);
+        strcat(*codedString, addressStr);
+        strcat(*codedString, "\0");
+        status = SUCCESS;
+    }
+    else
+    {
+        status = FAILURE;
+    }
+    /* free memory */
+    free(opcodeStr);
+    free(regStr);
+    free(addressStr);
     return status;
 }
 
@@ -197,150 +251,208 @@ int isValidOperetionValue(const char *operetionName, char *values)
         else
             return SUCCESS;
         break;
-        /*TODO:COMPLETE*/
+    /* save to memory operetions */
+    case 17:
+    case 18:
+    case 19:
+    case 20:
+    case 21:
+    case 22:
+        logger(D, "here6");
+        if (numberOfValues != 3 ||
+            !isRegister(getPointerToWord(sep, 1)) ||
+            !isSignNumberOrNumber(getPointerToWord(sep, 2)) ||
+            !isRegister(getPointerToWord(sep, 3)))
+            return FAILURE;
+        else
+            return SUCCESS;
+        break;
+    /* jmp command */
+    case 23:
+        logger(D, "here 7");
+        if (numberOfValues != 1 ||
+            (!isRegister(getPointerToWord(sep, 1)) &&
+             !isNumbersOrLetters(getPointerToWord(sep, 1))))
+            return FAILURE;
+        else
+            return SUCCESS;
+        break;
+    /* la command & call command */
+    case 24:
+    case 25:
+        logger(D, "here 8");
+        if (numberOfValues != 1 ||
+            !isNumbersOrLetters(getPointerToWord(sep, 1)))
+            return FAILURE;
+        else
+            return SUCCESS;
+        break;
+    /* stop command */
+    case 26:
+        if (numberOfValues != 0)
+            return FAILURE;
+        else
+            return SUCCESS;
+        break;
     }
     return FAILURE;
 }
 
-int isSignNumberOrNumber(char *str)
+char *codeOperetionToBinary(operetionSeg *seg, int index)
 {
-    int flagSing;
-    char *ch;
-    ch = str;
+    operetionNode *oprNode;
+    operetionInfo *oprInfo;
+    symbolsList *symbols;
+    symbolListNode *symbolNode;
+    int rs, rd, rt, immed, address, reg;
+    /* seperetor will hold the values as invidual words */
+    seperator *sep;
+    /* this will hold coded binary */
+    char *codedString;
+    /* guards */
+    if (seg == NULL || seg->head_p == NULL)
+        return NULL;
+    if (index >= totalOperetionsInSeg(seg))
+        return FAILURE;
 
-    flagSing = FALSE;
-    while (*ch != '\0')
+    /* set inital values */
+    rs = rt = rd = immed = 0;
+    /* allocate memory for holding the coded string */
+    codedString = (char *)malloc(CODE_BUFFER_SIZE + 1);
+    /* retrieve the opretion node from all operetions that saved in operetion segment */
+    oprNode = getPointToOpertionFromSeg(seg, index);
+    /* get the relative information about that operetion */
+    oprInfo = getOperetionInfo(oprNode->name);
+    /* init new seperetor */
+    sep = initSeprator();
+    appendStringWithComma(sep, oprNode->value);
+    if (oprInfo->type == 'R')
     {
-        if ((*ch) == '-' || (*ch) == '+')
+        /* add | sub | and | or | nor */
+        if (oprInfo->opcode == 0)
         {
-            if (flagSing == TRUE)
-                return FAILURE;
+            rs = registerToInt(getPointerToWord(sep, 1));
+            rt = registerToInt(getPointerToWord(sep, 2));
+            rd = registerToInt(getPointerToWord(sep, 3));
+        }
+        /* move | mvhi | mvlo */
+        else if (oprInfo->opcode == 1)
+        {
+            rs = registerToInt(getPointerToWord(sep, 1));
+            rt = 0;
+            rd = registerToInt(getPointerToWord(sep, 2));
+        }
+        operetionRToCode(oprInfo->opcode, oprInfo->funct, rd, rt, rs, &codedString);
+        logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
+    }
+    else if (oprInfo->type == 'I')
+    {
+        /* addi | subi | andi | ori | nori */
+        if (oprInfo->opcode >= 10 && oprInfo->opcode <= 14)
+        {
+            rs = registerToInt(getPointerToWord(sep, 1));
+            rt = registerToInt(getPointerToWord(sep, 3));
+            immed = atoi(getPointerToWord(sep, 2));
+            operetionIToCode(oprInfo->opcode, rs, rt, immed, &codedString);
+            logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
+        }
+        /* bne | beq | blt | bgt */
+        else if (oprInfo->opcode >= 15 && oprInfo->opcode <= 18)
+        {
+            /* for this kind of operetion need to retrieve the symbol for immed*/
+            /* get pointer to singelton symbol list */
+            symbols = getSymbolsList();
+            /* find the symbol passed as 3 param */
+            symbolNode = getPointerToSymbol(symbols, getPointerToWord(sep, 3));
+            /* calculate the relative address */
+            immed = symbolNode->address - oprNode->address;
+            /* set first param as rs */
+            rs = registerToInt(getPointerToWord(sep, 1));
+            /* set second param as rt */
+            rt = registerToInt(getPointerToWord(sep, 2));
+            operetionIToCode(oprInfo->opcode, rs, rt, immed, &codedString);
+            logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
+        }
+        /* lb | sb | lw | sw | lh | sh */
+        else if (oprInfo->opcode >= 19 && oprInfo->opcode <= 24)
+        {
+            rs = registerToInt(getPointerToWord(sep, 1));
+            immed = atoi(getPointerToWord(sep, 2));
+            rt = registerToInt(getPointerToWord(sep, 3));
+            operetionIToCode(oprInfo->opcode, rs, rt, immed, &codedString);
+            logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
+        }
+    }
+    else if (oprInfo->type == 'J')
+    {
+        /* jmp */
+        if (oprInfo->opcode == 30)
+        {
+            /* set reg */
+            reg = isRegister(getPointerToWord(sep, 1)) ? 1 : 0;
+            /* set address ,if it's not register get address of the symbol*/
+            if (reg == 0)
+            {
+                symbols = getSymbolsList();
+                /* find the symbol that saved in the symbolList */
+                symbolNode = getPointerToSymbol(symbols, getPointerToWord(sep, 1));
+                address = symbolNode->address;
+            }
+            /* else it's register, address param will be the number of register*/
             else
             {
-                flagSing = TRUE;
-                ch++;
+                address = registerToInt(getPointerToWord(sep, 1));
             }
-        }
-        else if (!isnumber(*ch))
-        {
-            return FAILURE;
-        }
-        else
-        {
-            ch++;
-            flagSing = FALSE;
+            operetionJToCode(oprInfo->opcode, reg, address, &codedString);
+            logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
         }
     }
-    /* check the last number */
-    if (flagSing == TRUE)
-        return FAILURE;
-    else
-        return SUCCESS;
-}
-
-int isNumbersOrLetters(char *str)
-{
-    char *ch;
-    int goodChar;
-    ch = str;
-
-    while (*ch != '\0')
-    {
-        goodChar = (isnumber(*ch) || ((*ch) >= 'a' && (*ch) <= 'z') || ((*ch) >= 'A' && (*ch) <= 'Z'));
-        if (!goodChar)
-            return FAILURE;
-        ch++;
-    }
-    return SUCCESS;
-}
-
-int isValidOperetionValueR(char *values)
-{
-    /* variables */
-    seperator *sep;
-    char *value;
-    int i;
-
-    /* initial */
-    sep = initSeprator();
-
-    /* seperete the values to individuals words */
-    if (appendStringWithComma(sep, values))
-    {
-        /* check if there is 3 operands */
-        if (numberOfWords(sep) != 3)
-        {
-            destroySeperator(sep);
-            return FAILURE;
-        }
-        /* there is correct number of operands */
-        else
-        {
-            /* iterate threw each of them and check if it's register*/
-            for (i = 0; i < 3; i++)
-            {
-                value = getPointerToWord(sep, i + 1);
-                if (!isRegister(value))
-                {
-                    destroySeperator(sep);
-                    return FAILURE;
-                }
-            }
-            destroySeperator(sep);
-            return SUCCESS;
-        }
-    }
+    free(codedString);
     destroySeperator(sep);
-    return FAILURE;
+    return NULL;
 }
 
-int isRegister(char *str)
+int registerToInt(char *reg)
 {
-    /* variables */
-    char *ch;
-    int number, length, factor;
+    return isRegister(reg);
+}
 
-    /* initiate variables */
-    ch = str;
-    length = strlen(str);
-    factor = 1;
+operetionNode *getPointToOpertionFromSeg(operetionSeg *seg, int index)
+{
+    operetionNode *tmpNode;
+    int i;
+    /* guards */
+    if (seg == NULL || seg->head_p == NULL)
+        return NULL;
+    if (index >= totalOperetionsInSeg(seg))
+        return NULL;
 
-    /* ignore the space in the begining */
-    while (isspace(*ch))
-        ch++;
-
-    /* check the first letter is '$' sign */
-    if ((*ch) != '$')
-        return FAILURE;
-
-    /* if it's dollar sing go to else block */
-    else
+    i = 0;
+    tmpNode = seg->head_p;
+    while (i < index)
     {
-        /* set ch to point on the last char */
-        ch = str + length - 1;
-
-        /* ignore the space from the end of the str */
-        while (isspace(*ch))
-            ch--;
-
-        /* remaining till the $ sign should be number,check for it */
-        /* TODO: FIX BUG - if there is 2 sign of dollars it would show that valid */
-        while (*ch != '$')
-        {
-            /* check for each ch that it's a number */
-            logger(D, "ch => %c", *ch);
-            if (!isnumber(*ch))
-                return FAILURE;
-            ch--;
-        }
-
-        number = atoi(ch + 1);
-        /* register can be from 1 till 32 */
-        if (number >= 1 && number <= MAX_REGISTER)
-            return SUCCESS;
-        else
-            return FAILURE;
+        tmpNode = tmpNode->next;
+        i++;
     }
+    return tmpNode;
+}
+
+int totalOperetionsInSeg(operetionSeg *seg)
+{
+    int counter;
+    operetionNode *tmpNode;
+    /* guard */
+    if (seg == NULL || seg->head_p == NULL)
+        return 0;
+
+    counter = 0;
+    tmpNode = seg->head_p;
+    while (tmpNode != NULL)
+    {
+        counter++;
+        tmpNode = tmpNode->next;
+    }
+    return counter;
 }
 
 operetionInfo *getOperetionInfo(char *name)

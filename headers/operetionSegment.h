@@ -2,14 +2,23 @@
 #define _OPERETION_SEGMENT_H
 
 #define IC_INCREASER 4
-#define R_CODE_BUFFER_SIZE 32
+#define CODE_BUFFER_SIZE 32
+
 #define R_CODE_EMPTY_SIZE 6
 #define R_CODE_FUNCT_SIZE 5
 #define R_CODE_RD_SIZE 5
 #define R_CODE_RT_SIZE 5
 #define R_CODE_RS_SIZE 5
 #define R_CODE_OPCODE_SIZE 6
-#define MAX_REGISTER 32
+
+#define I_CODE_OPCODE_SIZE 6
+#define I_CODE_RS_SIZE 5
+#define I_CODE_RT_SIZE 5
+#define I_CODE_IMMED_SIZE 16
+
+#define J_CODE_OPCODE_SIZE 6
+#define J_CODE_REG_SIZE 1
+#define J_CODE_ADDRESS_SIZE 25
 
 typedef struct operetionR
 {
@@ -50,13 +59,12 @@ int isSignNumberOrNumber(char *str);
 
 /*public*/
 operetionSeg *getOperetionSegment();
+char *codeOperetionToBinary(operetionSeg *seg, int index);
 int numberToBinary(int numValue, int sizeOfBits, char **codedString);
-int operetionRToCode(operetionR *oprR, char *codedString);
+int operetionRToCode(int opcode, int funct, int rd, int rt, int rs, char **codedString);
 char *fromOperetionToMachineCode(char *operetion, int address);
 void printOperetionsSeg(operetionSeg *seg);
 int isValidOperetionValue(const char *operetionName, char *values);
-int isValidOperetionValueR(char *values);
-int isValidOperetionValueJ(char *values);
 operetionSeg *initOperetionSegment();
 int isValidOperationName(const char *str);
 int destroyOperetionSeg(operetionSeg *seg);

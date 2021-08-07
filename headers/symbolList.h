@@ -24,7 +24,9 @@ symbolsList *initSymbolsList();
 symbolsList *getSymbolsList();
 char *symbolErrorReason(int errorStatus);
 int changeAttribute(symbolsList *symbolList, char *symbolName, char *attribute);
+/* TODO: edit the isSymbolList ,cause duplicated code with getPointerToSymbol*/
 int isSymbolExist(symbolsList *symbols, char *symbolName);
+symbolListNode *getPointerToSymbol(symbolsList *symbols, char *symbolName);
 int isValidSymbolName(char *str);
 int moveAddressDataTypeSymbolsList(symbolsList *symbols, int amount);
 int insertSymbol(symbolsList *symbols, char *symbolName, int address, char *attribute);

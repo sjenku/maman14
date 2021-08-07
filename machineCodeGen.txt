@@ -91,3 +91,43 @@ int isValidOperetionValueJ(char *values)
     destroySeperator(sep);
     return FAILURE;
 }
+
+int isValidOperetionValueR(char *values)
+{
+    /* variables */
+    seperator *sep;
+    char *value;
+    int i;
+
+    /* initial */
+    sep = initSeprator();
+
+    /* seperete the values to individuals words */
+    if (appendStringWithComma(sep, values))
+    {
+        /* check if there is 3 operands */
+        if (numberOfWords(sep) != 3)
+        {
+            destroySeperator(sep);
+            return FAILURE;
+        }
+        /* there is correct number of operands */
+        else
+        {
+            /* iterate threw each of them and check if it's register*/
+            for (i = 0; i < 3; i++)
+            {
+                value = getPointerToWord(sep, i + 1);
+                if (!isRegister(value))
+                {
+                    destroySeperator(sep);
+                    return FAILURE;
+                }
+            }
+            destroySeperator(sep);
+            return SUCCESS;
+        }
+    }
+    destroySeperator(sep);
+    return FAILURE;
+}

@@ -97,6 +97,24 @@ symbolsList *initSymbolsList()
     return symbols;
 }
 
+symbolListNode *getPointerToSymbol(symbolsList *symbols, char *symbolName)
+{
+    symbolListNode *tmpNode;
+    /* guard */
+    if (symbols == NULL || symbols->head_p == NULL)
+        return NULL;
+
+    tmpNode = symbols->head_p;
+    /* iterate threw the list of symbols */
+    while (tmpNode != NULL)
+    {
+        if (strcmp(tmpNode->name, symbolName) == 0)
+            return tmpNode;
+        tmpNode = tmpNode->next;
+    }
+    return tmpNode;
+}
+
 int insertSymbol(symbolsList *symbols, char *symbolName, int address, char *attribute)
 {
     int length;

@@ -6,6 +6,7 @@
 #define TRUE 1
 #define FALSE 0
 #define TOTAL_LOGGER_TYPES 4
+#define MAX_REGISTER 32
 
 static enum LoggerType { L,
                          I,
@@ -20,4 +21,8 @@ void loggerError(const char *errorInfo, const char *filename, int lineNumber);
 void loggerOn(int loggerType);
 void loggerOff(int loggerType);
 
+int isSignNumberOrNumber(char *str);
+int isNumbersOrLetters(char *str);
+int isRegister(char *str);
+int numberToBinary(int numValue, int sizeOfBits, char **codedString);
 #endif
