@@ -186,10 +186,8 @@ int isValidOperetionValue(const char *operetionName, char *values)
         return FAILURE;
 
     numberOfValues = numberOfWords(sep);
-    logger(D, "hey");
     for (i = 0; (i < length) && strcmp(validOperations[i].name, operetionName) != 0; i++)
         ;
-    logger(D, "here3");
     /* not found the operetion name in presaved operetion names */
     if (i == length)
         return FAILURE;
@@ -201,7 +199,6 @@ int isValidOperetionValue(const char *operetionName, char *values)
     case 2:
     case 3:
     case 4:
-        logger(D, "here1");
         if (numberOfValues != 3 ||
             !isRegister(getPointerToWord(sep, 1)) ||
             !isRegister(getPointerToWord(sep, 2)) ||
@@ -214,7 +211,6 @@ int isValidOperetionValue(const char *operetionName, char *values)
     case 5:
     case 6:
     case 7:
-        logger(D, "here2");
         if (numberOfValues != 2 ||
             !isRegister(getPointerToWord(sep, 1)) ||
             !isRegister(getPointerToWord(sep, 2)))
@@ -228,7 +224,6 @@ int isValidOperetionValue(const char *operetionName, char *values)
     case 10:
     case 11:
     case 12:
-        logger(D, "here4");
         if (numberOfValues != 3 ||
             !isRegister(getPointerToWord(sep, 1)) ||
             !isSignNumberOrNumber(getPointerToWord(sep, 2)) ||
@@ -242,7 +237,6 @@ int isValidOperetionValue(const char *operetionName, char *values)
     case 14:
     case 15:
     case 16:
-        logger(D, "here5");
         if (numberOfValues != 3 ||
             !isRegister(getPointerToWord(sep, 1)) ||
             !isRegister(getPointerToWord(sep, 2)) ||
@@ -258,7 +252,6 @@ int isValidOperetionValue(const char *operetionName, char *values)
     case 20:
     case 21:
     case 22:
-        logger(D, "here6");
         if (numberOfValues != 3 ||
             !isRegister(getPointerToWord(sep, 1)) ||
             !isSignNumberOrNumber(getPointerToWord(sep, 2)) ||
@@ -269,7 +262,6 @@ int isValidOperetionValue(const char *operetionName, char *values)
         break;
     /* jmp command */
     case 23:
-        logger(D, "here 7");
         if (numberOfValues != 1 ||
             (!isRegister(getPointerToWord(sep, 1)) &&
              !isNumbersOrLetters(getPointerToWord(sep, 1))))
@@ -280,7 +272,6 @@ int isValidOperetionValue(const char *operetionName, char *values)
     /* la command & call command */
     case 24:
     case 25:
-        logger(D, "here 8");
         if (numberOfValues != 1 ||
             !isNumbersOrLetters(getPointerToWord(sep, 1)))
             return FAILURE;
@@ -353,8 +344,6 @@ char *codeOperetionToBinary(operetionSeg *seg, int index)
             rs = registerToInt(getPointerToWord(sep, 1));
             rt = registerToInt(getPointerToWord(sep, 3));
             immed = atoi(getPointerToWord(sep, 2));
-            operetionIToCode(oprInfo->opcode, rs, rt, immed, &codedString);
-            logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
         }
         /* bne | beq | blt | bgt */
         else if (oprInfo->opcode >= 15 && oprInfo->opcode <= 18)
@@ -370,8 +359,6 @@ char *codeOperetionToBinary(operetionSeg *seg, int index)
             rs = registerToInt(getPointerToWord(sep, 1));
             /* set second param as rt */
             rt = registerToInt(getPointerToWord(sep, 2));
-            operetionIToCode(oprInfo->opcode, rs, rt, immed, &codedString);
-            logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
         }
         /* lb | sb | lw | sw | lh | sh */
         else if (oprInfo->opcode >= 19 && oprInfo->opcode <= 24)
@@ -379,13 +366,17 @@ char *codeOperetionToBinary(operetionSeg *seg, int index)
             rs = registerToInt(getPointerToWord(sep, 1));
             immed = atoi(getPointerToWord(sep, 2));
             rt = registerToInt(getPointerToWord(sep, 3));
-            operetionIToCode(oprInfo->opcode, rs, rt, immed, &codedString);
-            logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
         }
+        operetionIToCode(oprInfo->opcode, rs, rt, immed, &codedString);
+        logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
     }
     else if (oprInfo->type == 'J')
     {
-        /* jmp */
+        /* set initial values */
+        reg = address = 0;
+        /* point to the list of saved symbols */
+        symbols = getSymbolsList();
+        /* --------------------------jmp------------------------- */
         if (oprInfo->opcode == 30)
         {
             /* set reg */
@@ -393,7 +384,6 @@ char *codeOperetionToBinary(operetionSeg *seg, int index)
             /* set address ,if it's not register get address of the symbol*/
             if (reg == 0)
             {
-                symbols = getSymbolsList();
                 /* find the symbol that saved in the symbolList */
                 symbolNode = getPointerToSymbol(symbols, getPointerToWord(sep, 1));
                 address = symbolNode->address;
@@ -403,9 +393,23 @@ char *codeOperetionToBinary(operetionSeg *seg, int index)
             {
                 address = registerToInt(getPointerToWord(sep, 1));
             }
-            operetionJToCode(oprInfo->opcode, reg, address, &codedString);
-            logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
         }
+        /* -----------------------  la | call ------------------------------ */
+        else if (oprInfo->opcode == 31 || oprInfo->opcode == 32)
+        {
+            reg = 0;
+            symbolNode = getPointerToSymbol(symbols, getPointerToWord(sep, 1));
+            address = symbolNode->address;
+        }
+        /* -------------------------- stop ----------------------------------- */
+        else if (oprInfo->opcode == 63)
+        {
+            reg = 0;
+            address = 0;
+        }
+        /* code to binary */
+        operetionJToCode(oprInfo->opcode, reg, address, &codedString);
+        logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
     }
     free(codedString);
     destroySeperator(sep);

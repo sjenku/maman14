@@ -7,6 +7,8 @@
 #define DW ".dw"
 #define DH ".dh"
 
+#define SIZE_BYTE 8
+
 typedef struct directiveNode
 {
     char *name;
@@ -23,9 +25,12 @@ typedef struct dataSegment
 } dataSeg;
 
 dataSeg *getDataSegment();
+int directiveAscizToCode(char *value, int numberOfCharsInValue, char **codedString);
+int directiveDbDhDwToCode(char *directiveType, char *value, char **codedString);
+directiveNode *getPointToDirectiveNode(dataSeg *seg, int index);
 int isExternal(char *str);
 int isEntry(char *str);
-int sizeOfValue(char *dataType, char *value);
+int sizeOfValueBytes(char *dataType, char *value);
 void printDataSeg(dataSeg *seg);
 dataSeg *initDataSegment();
 int moveAddressDataSeg(dataSeg *seg, int amount);

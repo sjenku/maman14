@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include "headers/dataSegment.h"
 #include "headers/tools.h"
+#include "headers/stringSeperator.h"
 
 static char *directiveWords[TOTAL_DIRECTIVE_WORDS] = {
     ASCIZ, DB, DH, DW};
@@ -35,7 +36,8 @@ int isValidDirectiveName(const char *str)
 }
 
 /* this function returns number of elements if data valid ,example: '2,5,3' return 3
-and return 0 if not valid */
+and return 0 if not valid , if directiveType is .asciz then it would return number of chars
+plus one, for holding the null char example : "aBcd" return 5,if not valid return 0*/
 int isValidDirectiveValues(const char *directiveType, char *str)
 {
     char *ch;
@@ -146,7 +148,7 @@ int isValidDirectiveValues(const char *directiveType, char *str)
 }
 
 /* return the appropriate size for the value */
-int sizeOfValue(char *dataType, char *value)
+int sizeOfValueBytes(char *dataType, char *value)
 {
     int numOfElements;
     numOfElements = isValidDirectiveValues(dataType, value);
@@ -201,7 +203,7 @@ int insertDirectiveTo(dataSeg *seg, char *directiveName, char *value)
 
     /* handle insertion of address */
     newNode->address = seg->DC;
-    seg->DC += sizeOfValue(directiveName, value);
+    seg->DC += sizeOfValueBytes(directiveName, value);
 
     /* set next pointer */
     newNode->next = NULL;
@@ -305,4 +307,137 @@ int moveAddressDataSeg(dataSeg *seg, int ICF)
         }
         return SUCCESS;
     }
+}
+
+directiveNode *getPointToDirectiveNode(dataSeg *seg, int index)
+{
+    /* variables */
+    directiveNode *tmpNode;
+    int i;
+
+    /* guard */
+    if (seg == NULL || seg->head_p == NULL)
+        return NULL;
+
+    /* set tmpNode to point on the begining of the saved directives words */
+    tmpNode = seg->head_p;
+
+    /* iterate till the directive word in the particular index , if the index
+        is greater then total saved directives, then tmpNode would be NULL */
+    for (i = 0; i < index && tmpNode != NULL; i++)
+    {
+        tmpNode = tmpNode->next;
+    }
+
+    return tmpNode;
+}
+
+/* value - is a value in format char* that inserted as is 
+codedString - will hold the coded to binary value param, it should hold enough memory
+for each value seperated by comma and according to directiveType,
+example: if directiveType .db then should hold sizeof numberOfValue * (SIZE_BYTE + 1),the +1 stends for holding '\n' or '\0'*/
+int directiveDbDhDwToCode(char *directiveType, char *value, char **codedString)
+{
+    /* variables */
+    char *tmpCodedString;
+    int val, bitsSize;
+    int numberOfValues, i;
+    seperator *sep; /* sep will hold the inviduals values gotten from value param */
+    /* guard */
+    if (directiveType == NULL || value == NULL || codedString == NULL)
+        return FAILURE;
+
+    /* init seperetor and append value param to seperate to vals */
+    sep = initSeprator();
+    appendStringWithComma(sep, value);
+
+    /* get the total number of values in value param */
+    numberOfValues = numberOfWords(sep);
+
+    /* allocate memory for holding tmpCodedString for each val */
+    bitsSize = (directiveTypeSize(directiveType) * SIZE_BYTE);
+    tmpCodedString = (char *)malloc(bitsSize + 1); /* +1 stends for holding '\0' */
+    for (i = 1; i <= numberOfValues; i++)
+    {
+        /* get the val as int */
+        val = atoi(getPointerToWord(sep, i));
+        /* code to binary */
+        numberToBinary(val, bitsSize, &tmpCodedString);
+        /* if first word copy to begining if not first,append to end of the word */
+        if (i == 0)
+            strcpy(*codedString, tmpCodedString);
+        else
+            strcat(*codedString, tmpCodedString);
+        /* add '\n' */
+        strcat(*codedString, "\n");
+    }
+    /* free memory */
+    free(tmpCodedString);
+    destroySeperator(sep);
+    /* set the last char to null char, (bitsSize + 1) it's the size for each val, that's why
+    multiple it by numberOfValues give the totalChars,to get to the last char in zero based index
+    we go minus 1 */
+    (*codedString)[((bitsSize + 1) * numberOfValues) - 1] = '\0';
+    return SUCCESS;
+}
+
+/*codedString need to be allocated with memory for holding the coded string,for every letter in value
+would be allocated (SIZE_BYTE + 1),'+1' stends for holding '\n' or '\0' */
+int directiveAscizToCode(char *value, int numberOfCharsInValue, char **codedString)
+{
+    char *ch;
+    int i;
+    char *byteCodedString;
+
+    /* guard */
+    if (value == NULL)
+        return FAILURE;
+    /* set ch to point on the begining of the value */
+    ch = value;
+    /* ignore the space in the begining */
+    while (isspace(*ch))
+        ch++;
+    /* ignore the -> " */
+    ch++;
+    /* byteCodedString for holding tmp value of coded string for 1 char from the value */
+    byteCodedString = (char *)malloc(SIZE_BYTE + 1);
+    /* set i to 0 for indecate if this is first word that would be insert to codedString*/
+    i = 0;
+    while ((*ch) != '"')
+    {
+        numberToBinary(*ch, SIZE_BYTE, &byteCodedString);
+        if (i == 0)
+            strcpy(*codedString, byteCodedString);
+        else
+            strcat(*codedString, byteCodedString);
+        /* insert '\n' to seperate the representation each binary code of each char */
+        strcat(*codedString, "\n");
+        /* move to the next char */
+        i++;
+        ch++;
+    }
+    /* also code to binary the null char */
+    numberToBinary('\0', SIZE_BYTE, &byteCodedString);
+    strcat(*codedString, byteCodedString);
+    /* free memory */
+    free(byteCodedString);
+    /* set the end of the coded string to '\0' */
+    (*codedString)[numberOfCharsInValue * (SIZE_BYTE + 1) - 1] = '\0';
+    return SUCCESS;
+}
+
+char *dataToCode(dataSeg *seg, int index)
+{
+    directiveNode *dataNode;
+    /* guard */
+    if (seg == NULL || seg->head_p == NULL)
+        return NULL;
+
+    /* get the pointer to the saved directive word */
+    dataNode = getPointToDirectiveNode(seg, index);
+    /* guard */
+    if (dataNode == NULL)
+        return NULL;
+
+    return NULL;
 }

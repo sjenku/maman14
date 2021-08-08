@@ -67,7 +67,7 @@ void appendStringWithSpace(seperator *seperator, char *str)
 {
     char *ch;
     int i, charCounter;
-    int totalChars, condition;
+    int totalChars;
     totalChars = strlen(str);
 
     /* Seperate the words */

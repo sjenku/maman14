@@ -20,24 +20,28 @@ int main(int argc, char *argv[])
 
     loggerOn(I);
     loggerOn(D);
-
+    /*
     dataSeg = getDataSegment();
     oprSeg = getOperetionSegment();
     symbolsList = getSymbolsList();
     runEngine(argc, argv);
 
-    printSymbols(symbolsList);
+
+    printDataSeg(dataSeg);
     destroyDataSeg(dataSeg);
     destroySymbolsList(symbolsList);
     destroyOperetionSeg(oprSeg);
-
-    /*char *str;
-    str = (char *)malloc(26);
-    numberToBinary(4, 25, &str);
-    logger(D, "str => %s", str);
-    free(str);
     */
 
+    char *val = "31,-12";
+    char *str;
+    int numOfVal;
+    numOfVal = isValidDirectiveValues(DW, val);
+    logger(D, "num of vals => %d", numOfVal);
+    str = (char *)malloc(((SIZE_BYTE * 4) + 1) * numOfVal);
+    directiveDbDhDwToCode(DW, val, &str);
+    logger(D, "str \n%s", str);
+    free(str);
     check_leaks();
     return 0;
 }
