@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <string.h>
+#include <math.h>
 #include "headers/tools.h"
 #include "headers/stringSeperator.h"
 #include "headers/errors.h"
@@ -20,19 +22,18 @@ int main(int argc, char *argv[])
 
     loggerOn(I);
     loggerOn(D);
-    /*
+
     dataSeg = getDataSegment();
     oprSeg = getOperetionSegment();
     symbolsList = getSymbolsList();
     runEngine(argc, argv);
 
-
     printDataSeg(dataSeg);
     destroyDataSeg(dataSeg);
     destroySymbolsList(symbolsList);
     destroyOperetionSeg(oprSeg);
-    */
 
+    /*
     char *val = "31,-12";
     char *str;
     int numOfVal;
@@ -43,6 +44,7 @@ int main(int argc, char *argv[])
     logger(D, "str \n%s", str);
     free(str);
     check_leaks();
+    */
     return 0;
 }
 

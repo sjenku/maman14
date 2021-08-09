@@ -115,6 +115,7 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
 void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
 {
     char *firstWord, *currentWord, *symbolName;
+    char *codedDirectiveWord;
     seperator *seperator;
     operetionSeg *operetionSeg;
     symbolsList *symbolList;
@@ -143,7 +144,7 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
             wordIndex++;
             currentWord = getPointerToWord(seperator, wordIndex);
         }
-
+        /* if it's directive code to binary */
         if (isValidDirectiveName(currentWord))
         {
             goto END;

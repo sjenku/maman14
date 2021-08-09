@@ -181,3 +181,39 @@ int numberToBinary(int numValue, int sizeOfBits, char **codedString)
     (*codedString)[indexString] = '\0';
     return SUCCESS;
 }
+
+/* this method return new allocated char* with hex representation of binary input 
+   this is a client responsobility to free memory that been allocated for the return value*/
+char *binaryToHex(const char *inStr)
+{
+    static char hexlookup[] = "0123456789ABCDEF";
+    char *outStr, *ch;
+    int len = strlen(inStr) / 4;
+    int i = strlen(inStr) % 4;
+    outStr = (char *)malloc(len + i + 1); /* this would hold the output hex */
+    ch = outStr;                          /* for move threw the output char* */
+    char current = 0;
+    if (i)
+    { /* handle part that not devided by 4 */
+        while (i--)
+        {
+            current = (current << 1) + (*inStr - '0');
+            inStr++;
+        }
+        *ch = hexlookup[current];
+        ++ch;
+    }
+    while (len--)
+    {
+        current = 0;
+        for (i = 0; i < 4; ++i)
+        {
+            current = (current << 1) + (*inStr - '0');
+            inStr++;
+        }
+        *ch = hexlookup[current];
+        ++ch;
+    }
+    *ch = '\0'; // null char
+    return outStr;
+}

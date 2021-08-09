@@ -1,7 +1,9 @@
-assembler: main.o engineCompile.o inputHandler.o symbolList.o dataSegment.o operetionSegment.o tools.o leacks_cheker_ex.o stringSeperator.o errors.o
-	gcc -Wall -ansi -pedantic main.o engineCompile.o inputHandler.o symbolList.o dataSegment.o operetionSegment.o tools.o leacks_cheker_ex.o stringSeperator.o errors.o -o assembler
+assembler: main.o objectCreator.o engineCompile.o inputHandler.o symbolList.o dataSegment.o operetionSegment.o tools.o leacks_cheker_ex.o stringSeperator.o errors.o
+	gcc -Wall -ansi -pedantic main.o objectCreator.o engineCompile.o inputHandler.o symbolList.o dataSegment.o operetionSegment.o tools.o leacks_cheker_ex.o stringSeperator.o errors.o -o assembler
 main.o: main.c
 	gcc -c -Wall -ansi -pedantic main.c -o main.o
+objectCreator.o:objectCreator.c headers/objectCreator.h
+	gcc -c -Wall -ansi -pedantic objectCreator.c -o objectCreator.o
 engineCompile.o:engineCompile.c headers/engineCompile.h
 	gcc -c -Wall -ansi -pedantic engineCompile.c -o engineCompile.o
 inputHandler.o:inputHandler.c headers/inputHandler.h
