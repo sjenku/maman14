@@ -188,11 +188,13 @@ char *binaryToHex(const char *inStr)
 {
     static char hexlookup[] = "0123456789ABCDEF";
     char *outStr, *ch;
+    char current;
     int len = strlen(inStr) / 4;
     int i = strlen(inStr) % 4;
+    logger(D, "inStr = %s", inStr);
     outStr = (char *)malloc(len + i + 1); /* this would hold the output hex */
     ch = outStr;                          /* for move threw the output char* */
-    char current = 0;
+    current = 0;
     if (i)
     { /* handle part that not devided by 4 */
         while (i--)
@@ -200,7 +202,7 @@ char *binaryToHex(const char *inStr)
             current = (current << 1) + (*inStr - '0');
             inStr++;
         }
-        *ch = hexlookup[current];
+        *ch = hexlookup[(int)current];
         ++ch;
     }
     while (len--)
@@ -211,9 +213,9 @@ char *binaryToHex(const char *inStr)
             current = (current << 1) + (*inStr - '0');
             inStr++;
         }
-        *ch = hexlookup[current];
+        *ch = hexlookup[(int)current];
         ++ch;
     }
-    *ch = '\0'; // null char
+    *ch = '\0'; /* null char */
     return outStr;
 }

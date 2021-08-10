@@ -289,6 +289,9 @@ int isValidOperetionValue(const char *operetionName, char *values)
     return FAILURE;
 }
 
+/* this method code the operetion saved in operetion segment to binary.
+    important note that this method return pointer to the binary 
+    that need to be free from memory when not more in use */
 char *codeOperetionToBinary(operetionSeg *seg, int index)
 {
     operetionNode *oprNode;
@@ -312,6 +315,7 @@ char *codeOperetionToBinary(operetionSeg *seg, int index)
     codedString = (char *)malloc(CODE_BUFFER_SIZE + 1);
     /* retrieve the opretion node from all operetions that saved in operetion segment */
     oprNode = getPointToOpertionFromSeg(seg, index);
+    logger(D, "oprNode->%s", oprNode->name);
     /* get the relative information about that operetion */
     oprInfo = getOperetionInfo(oprNode->name);
     /* init new seperetor */
@@ -353,6 +357,7 @@ char *codeOperetionToBinary(operetionSeg *seg, int index)
             symbols = getSymbolsList();
             /* find the symbol passed as 3 param */
             symbolNode = getPointerToSymbol(symbols, getPointerToWord(sep, 3));
+            printSymbols(symbols);
             /* calculate the relative address */
             immed = symbolNode->address - oprNode->address;
             /* set first param as rs */
@@ -411,9 +416,8 @@ char *codeOperetionToBinary(operetionSeg *seg, int index)
         operetionJToCode(oprInfo->opcode, reg, address, &codedString);
         logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
     }
-    free(codedString);
     destroySeperator(sep);
-    return NULL;
+    return codedString;
 }
 
 int registerToInt(char *reg)

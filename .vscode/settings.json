@@ -13,6 +13,11 @@
     "__nullptr": "cpp",
     "response.h": "c",
     "stringseperator.h": "c",
-    "datasegment.h": "c"
+    "datasegment.h": "c",
+    "objectcreator.h": "c",
+    "__locale": "c",
+    "__string": "c",
+    "string": "c",
+    "string_view": "c"
   }
 }

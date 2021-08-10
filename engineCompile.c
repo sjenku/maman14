@@ -9,15 +9,10 @@
 #include "headers/symbolList.h"
 #include "headers/dataSegment.h"
 #include "headers/operetionSegment.h"
+#include "headers/objectCreator.h"
 
-/* this method takes the first word label and second word in the line and insert if no duplicates to the data base */
-void handleCaseFirstWordLabel(const char *word, const char *secondWord, char *restLine, const char *filename, int lineNumber)
-{
-}
-
-void handleFirstWordOperation(const char *word, const char *filename, int lineNumber)
-{
-}
+/* private */
+int insertDataSegmentToObjectList(dataSeg *seg, objList *objL);
 
 /* this function set the workflow that actually the algorithm that handle each line */
 void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
@@ -115,10 +110,11 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
 void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
 {
     char *firstWord, *currentWord, *symbolName;
-    char *codedDirectiveWord;
+    char *codedBin;
     seperator *seperator;
     operetionSeg *operetionSeg;
     symbolsList *symbolList;
+    objList *objectList;
     int wordIndex;
     /* set index that indicates which operetion to get from operetion segment */
     static int operetionIndex = 0;
@@ -159,7 +155,14 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
             /* it's operetion , code it to binary and print it*/
             else
             {
-                codeOperetionToBinary(operetionSeg, operetionIndex);
+
+                codedBin = codeOperetionToBinary(operetionSeg, operetionIndex);
+                logger(D, "it's here2 %s", codedBin);
+                /* insert to objectList for manage it after when creating file.ob */
+                objectList = getObjectList();
+                insertBinaryToObj(objectList, STYLE_OPERETION, codedBin);
+                /* free memory */
+                free(codedBin);
                 operetionIndex++;
             }
         }
@@ -174,11 +177,13 @@ void runEngine(int argc, char *argv[])
     operetionSeg *operetionSeg;
     symbolsList *symbolsList;
     dataSeg *dataSeg;
+    objList *objectList;
     int ICF;
 
     operetionSeg = getOperetionSegment();
     symbolsList = getSymbolsList();
     dataSeg = getDataSegment();
+    objectList = getObjectList();
 
     /* Set of functions that will be implemented on each line of the file*/
     rulesArr[0] = engineWorkFlowForLineFirst;
@@ -192,6 +197,11 @@ void runEngine(int argc, char *argv[])
     /* Start Second Workflow */
     rulesArr[0] = engineWorkFlowForLineSecond;
     runRulessOnLinesOfFile(argc, argv, TOTAL_RULES, rulesArr);
+
+    /* Insert All Directives binary to objectListCreator */
+    insertDataSegmentToObjectList(dataSeg, objectList);
+    /* create .ob file */
+    createObjDataToFile(objectList);
 }
 
 int isComment(char *word)
@@ -210,4 +220,43 @@ int isComment(char *word)
             }
     }
     return FAILURE;
+}
+
+int insertDataSegmentToObjectList(dataSeg *seg, objList *objL)
+{
+    directiveNode *tmpNode;
+    char *binStr;
+    int numOfCharsInValue;
+    /* guard */
+    if (seg == NULL || objL == NULL)
+    {
+        return FAILURE;
+    }
+
+    printDataSeg(seg);
+    tmpNode = seg->head_p;
+    while (tmpNode != NULL)
+    {
+        numOfCharsInValue = strlen(tmpNode->value);
+        binStr = (char *)malloc(((SIZE_BYTE * directiveTypeSize(tmpNode->name))) * numOfCharsInValue + 1);
+        if (strcmp(tmpNode->name, ASCIZ) == 0)
+        {
+            directiveAscizToCode(tmpNode->value, numOfCharsInValue, &binStr);
+            logger(D, "1address=> %d  bin=>%s", tmpNode->address, binStr);
+        }
+        else
+        {
+
+            directiveDbDhDwToCode(tmpNode->name, tmpNode->value, &binStr);
+            logger(D, "2address=> %d  bin=>%s", tmpNode->address, binStr);
+        }
+        if (strcmp(tmpNode->name, ASCIZ) == 0)
+            insertBinaryToObj(objL, STYLE_DIFF, binStr);
+        else
+            insertBinaryToObj(objL, STYLE_DATA, binStr);
+        free(binStr);
+        tmpNode = tmpNode->next;
+    }
+    printObjList(objL);
+    return SUCCESS;
 }

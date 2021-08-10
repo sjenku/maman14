@@ -9,7 +9,6 @@ static char *directiveWords[TOTAL_DIRECTIVE_WORDS] = {
     ASCIZ, DB, DH, DW};
 
 /* private */
-int directiveTypeSize(char *directiveName);
 int removeFirstDirective(dataSeg *seg);
 int removeAllDataFrom(dataSeg *seg);
 
@@ -357,22 +356,30 @@ int directiveDbDhDwToCode(char *directiveType, char *value, char **codedString)
     /* allocate memory for holding tmpCodedString for each val */
     bitsSize = (directiveTypeSize(directiveType) * SIZE_BYTE);
     tmpCodedString = (char *)malloc(bitsSize + 1); /* +1 stends for holding '\0' */
+    logger(D, "allocated tmpCodedStr with size directiveType=>%d", directiveTypeSize(directiveType));
     for (i = 1; i <= numberOfValues; i++)
     {
         /* get the val as int */
         val = atoi(getPointerToWord(sep, i));
         /* code to binary */
         numberToBinary(val, bitsSize, &tmpCodedString);
+        logger(D, "val atoi => %d,tmpCoded = %s,i = %d", val, tmpCodedString, i);
         /* if first word copy to begining if not first,append to end of the word */
-        if (i == 0)
+        if (i == 1)
+        {
             strcpy(*codedString, tmpCodedString);
+        }
         else
+        {
             strcat(*codedString, tmpCodedString);
+        }
+        strcat(*codedString, "\0");
         /* add '\n' */
-        strcat(*codedString, "\n");
+        //strcat(*codedString, "\n");
     }
     /* free memory */
     free(tmpCodedString);
+    logger(D, "free tmpCodeString");
     destroySeperator(sep);
     /* set the last char to null char, (bitsSize + 1) it's the size for each val, that's why
     multiple it by numberOfValues give the totalChars,to get to the last char in zero based index
@@ -382,7 +389,7 @@ int directiveDbDhDwToCode(char *directiveType, char *value, char **codedString)
 }
 
 /*codedString need to be allocated with memory for holding the coded string,for every letter in value
-would be allocated (SIZE_BYTE + 1),'+1' stends for holding '\n' or '\0' */
+would be allocated (SIZE_BYTE),also need to add '+1' that stends for holding '\n' or '\0' */
 int directiveAscizToCode(char *value, int numberOfCharsInValue, char **codedString)
 {
     char *ch;
@@ -410,8 +417,6 @@ int directiveAscizToCode(char *value, int numberOfCharsInValue, char **codedStri
             strcpy(*codedString, byteCodedString);
         else
             strcat(*codedString, byteCodedString);
-        /* insert '\n' to seperate the representation each binary code of each char */
-        strcat(*codedString, "\n");
         /* move to the next char */
         i++;
         ch++;

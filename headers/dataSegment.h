@@ -25,6 +25,7 @@ typedef struct dataSegment
 } dataSeg;
 
 dataSeg *getDataSegment();
+int directiveTypeSize(char *directiveName);
 int directiveAscizToCode(char *value, int numberOfCharsInValue, char **codedString);
 int directiveDbDhDwToCode(char *directiveType, char *value, char **codedString);
 directiveNode *getPointToDirectiveNode(dataSeg *seg, int index);
