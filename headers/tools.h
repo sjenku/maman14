@@ -25,5 +25,5 @@ int isSignNumberOrNumber(char *str);
 int isNumbersOrLetters(char *str);
 int isRegister(char *str);
 int numberToBinary(int numValue, int sizeOfBits, char **codedString);
-char *binaryToHex(const char *inStr);
+char *binaryToHex(char *inStr, int fromRight);
 #endif

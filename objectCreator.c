@@ -4,11 +4,9 @@
 #include "headers/objectCreator.h"
 #include "headers/tools.h"
 
-/* private */
-void swap(char *ch1, char *ch2);
-
 /* manage data of the list */
-int createObjDataToFile(objList *objL)
+/* operetionHolding and dataHolding is address holding each segment ICF-INITIAL_ADDRESS & DFC */
+int createObjDataToFile(objList *objL, int operetionsHolding, int dataHolding)
 {
     printObjList(objL);
     /* tmpNode for iterate threw the list of object data */
@@ -34,18 +32,13 @@ int createObjDataToFile(objList *objL)
         if (fileObj == NULL)
             return FAILURE;
         /* iterate threw list */
+        fprintf(fileObj, "\t %d %d ", operetionsHolding, dataHolding);
         while (tmpNode != NULL)
         {
             /* dataHex holding the hexedecimal representation of a binary code 
                'binaryToHex' return allocated str,that need to be free after */
-            dataHex = binaryToHex(tmpNode->codedBinary);
-            logger(D, "binaryToHex=> %s", dataHex);
-            if (tmpNode->style == STYLE_OPERETION)
-                convertHexStyleOpretion(&dataHex);
-            else if (tmpNode->style == STYLE_DATA)
-                convertHexStyleData(&dataHex);
+            dataHex = binaryToHex(tmpNode->codedBinary, FROM_RIGHT);
             length = strlen(dataHex);
-
             /* create format as |adress hex hex hex hex| */
             for (i = 0; i < length; i++, totalChars++)
             {
@@ -82,45 +75,7 @@ int createObjDataToFile(objList *objL)
     return FAILURE;
 }
 
-int convertHexStyleData(char **hexStr)
-{
-    int i, j;
-    i = 0;
-    j = strlen(*(hexStr)) - 2;
-    while (i < j)
-    {
-        swap(&(*hexStr)[i], &(*hexStr)[j]);
-        swap(&(*hexStr)[i + 1], &(*hexStr)[j + 1]);
-        i += 2;
-        j -= 2;
-    }
-}
-int convertHexStyleOpretion(char **hexStr)
-{
-    int i, length;
-
-    i = 0;
-    length = strlen(*hexStr);
-    if (length < BUFFER_SIZE)
-    {
-        *hexStr = (char *)realloc(*hexStr, BUFFER_SIZE + 1);
-        if (*hexStr == NULL)
-            logger(D, "couldn't realloc");
-    }
-    /* add 'missing' hexs to get hexs in size of buffer_size e.g buffersize 8 then 1FFFF -> 1FFFF000 */
-    for (i = length; i < BUFFER_SIZE; i++)
-    {
-        (*hexStr[i]) = '0';
-    }
-    /* null char */
-    (*hexStr)[BUFFER_SIZE] = '\0';
-    swap(&(*hexStr)[0], &(*hexStr)[6]);
-    swap(&(*hexStr)[1], &(*hexStr)[7]);
-    swap(&(*hexStr)[2], &(*hexStr)[4]);
-    swap(&(*hexStr)[3], &(*hexStr)[5]);
-    return SUCCESS;
-}
-
+/*
 void swap(char *ch1, char *ch2)
 {
     char tmpCh;
@@ -128,12 +83,11 @@ void swap(char *ch1, char *ch2)
     *ch1 = *ch2;
     *ch2 = tmpCh;
 }
+*/
 
 /* menage the list */
 
-/* the style param is STYLE_DATA or STYLE_OPERETION this specify the binary type
-    it's neccasery for when objectList creates file with hex representation */
-int insertBinaryToObj(objList *objL, int style, char *binStr)
+int insertBinaryToObj(objList *objL, char *binStr)
 {
     /* variables */
     objNode *newNode, *tmpNode;
@@ -154,8 +108,6 @@ int insertBinaryToObj(objList *objL, int style, char *binStr)
 
     /* set next pointer */
     newNode->next = NULL;
-    /* set style */
-    newNode->style = style;
 
     /* insert First Element */
     if (objL->head_p == NULL)

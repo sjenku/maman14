@@ -4,6 +4,7 @@
 #include "headers/dataSegment.h"
 #include "headers/tools.h"
 #include "headers/stringSeperator.h"
+#include "headers/objectCreator.h"
 
 static char *directiveWords[TOTAL_DIRECTIVE_WORDS] = {
     ASCIZ, DB, DH, DW};
@@ -335,7 +336,7 @@ directiveNode *getPointToDirectiveNode(dataSeg *seg, int index)
 codedString - will hold the coded to binary value param, it should hold enough memory
 for each value seperated by comma and according to directiveType,
 example: if directiveType .db then should hold sizeof numberOfValue * (SIZE_BYTE + 1),the +1 stends for holding '\n' or '\0'*/
-int directiveDbDhDwToCode(char *directiveType, char *value, char **codedString)
+int directiveDbDhDwToCode(objList *objL, char *directiveType, char *value)
 {
     /* variables */
     char *tmpCodedString;
@@ -343,7 +344,7 @@ int directiveDbDhDwToCode(char *directiveType, char *value, char **codedString)
     int numberOfValues, i;
     seperator *sep; /* sep will hold the inviduals values gotten from value param */
     /* guard */
-    if (directiveType == NULL || value == NULL || codedString == NULL)
+    if (directiveType == NULL || value == NULL)
         return FAILURE;
 
     /* init seperetor and append value param to seperate to vals */
@@ -356,7 +357,6 @@ int directiveDbDhDwToCode(char *directiveType, char *value, char **codedString)
     /* allocate memory for holding tmpCodedString for each val */
     bitsSize = (directiveTypeSize(directiveType) * SIZE_BYTE);
     tmpCodedString = (char *)malloc(bitsSize + 1); /* +1 stends for holding '\0' */
-    logger(D, "allocated tmpCodedStr with size directiveType=>%d", directiveTypeSize(directiveType));
     for (i = 1; i <= numberOfValues; i++)
     {
         /* get the val as int */
@@ -364,33 +364,15 @@ int directiveDbDhDwToCode(char *directiveType, char *value, char **codedString)
         /* code to binary */
         numberToBinary(val, bitsSize, &tmpCodedString);
         logger(D, "val atoi => %d,tmpCoded = %s,i = %d", val, tmpCodedString, i);
-        /* if first word copy to begining if not first,append to end of the word */
-        if (i == 1)
-        {
-            strcpy(*codedString, tmpCodedString);
-        }
-        else
-        {
-            strcat(*codedString, tmpCodedString);
-        }
-        strcat(*codedString, "\0");
-        /* add '\n' */
-        //strcat(*codedString, "\n");
+        insertBinaryToObj(objL, tmpCodedString);
     }
     /* free memory */
     free(tmpCodedString);
-    logger(D, "free tmpCodeString");
     destroySeperator(sep);
-    /* set the last char to null char, (bitsSize + 1) it's the size for each val, that's why
-    multiple it by numberOfValues give the totalChars,to get to the last char in zero based index
-    we go minus 1 */
-    (*codedString)[((bitsSize + 1) * numberOfValues) - 1] = '\0';
     return SUCCESS;
 }
 
-/*codedString need to be allocated with memory for holding the coded string,for every letter in value
-would be allocated (SIZE_BYTE),also need to add '+1' that stends for holding '\n' or '\0' */
-int directiveAscizToCode(char *value, int numberOfCharsInValue, char **codedString)
+int directiveAscizToCode(objList *objL, char *value)
 {
     char *ch;
     int i;
@@ -408,26 +390,18 @@ int directiveAscizToCode(char *value, int numberOfCharsInValue, char **codedStri
     ch++;
     /* byteCodedString for holding tmp value of coded string for 1 char from the value */
     byteCodedString = (char *)malloc(SIZE_BYTE + 1);
-    /* set i to 0 for indecate if this is first word that would be insert to codedString*/
-    i = 0;
     while ((*ch) != '"')
     {
         numberToBinary(*ch, SIZE_BYTE, &byteCodedString);
-        if (i == 0)
-            strcpy(*codedString, byteCodedString);
-        else
-            strcat(*codedString, byteCodedString);
+        insertBinaryToObj(objL, byteCodedString);
         /* move to the next char */
-        i++;
         ch++;
     }
     /* also code to binary the null char */
     numberToBinary('\0', SIZE_BYTE, &byteCodedString);
-    strcat(*codedString, byteCodedString);
+    insertBinaryToObj(objL, byteCodedString);
     /* free memory */
     free(byteCodedString);
-    /* set the end of the coded string to '\0' */
-    (*codedString)[numberOfCharsInValue * (SIZE_BYTE + 1) - 1] = '\0';
     return SUCCESS;
 }
 

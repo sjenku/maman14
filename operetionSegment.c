@@ -5,6 +5,7 @@
 #include "headers/tools.h"
 #include "headers/symbolList.h"
 #include "headers/stringSeperator.h"
+#include "headers/objectCreator.h"
 
 static operetionInfo validOperations[] = {
     {"add", 'R', 1, 0},
@@ -290,9 +291,9 @@ int isValidOperetionValue(const char *operetionName, char *values)
 }
 
 /* this method code the operetion saved in operetion segment to binary.
-    important note that this method return pointer to the binary 
-    that need to be free from memory when not more in use */
-char *codeOperetionToBinary(operetionSeg *seg, int index)
+    after the operetion coded to binary it's saved to objList that holds all 
+    binary code that been created*/
+int codeOperetionToBinary(objList *objL, operetionSeg *seg, int index)
 {
     operetionNode *oprNode;
     operetionInfo *oprInfo;
@@ -305,7 +306,7 @@ char *codeOperetionToBinary(operetionSeg *seg, int index)
     char *codedString;
     /* guards */
     if (seg == NULL || seg->head_p == NULL)
-        return NULL;
+        return FAILURE;
     if (index >= totalOperetionsInSeg(seg))
         return FAILURE;
 
@@ -417,7 +418,9 @@ char *codeOperetionToBinary(operetionSeg *seg, int index)
         logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
     }
     destroySeperator(sep);
-    return codedString;
+    insertBinaryToObj(objL, codedString);
+    free(codedString);
+    return SUCCESS;
 }
 
 int registerToInt(char *reg)

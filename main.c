@@ -14,22 +14,13 @@
 
 void check_leaks();
 
-/*
-    loggerOn(I);
-    loggerOn(D);
-
-    char *str;
-    str = (char *)malloc((SIZE_BYTE * 4) * 2 + 1);
-    directiveDbDhDwToCode(DW, "31,-12", &str);
-    logger(D, "str => %s", str);
-    free(str);
-    */
 int main(int argc, char *argv[])
 {
 
     dataSeg *dataSeg;
     operetionSeg *oprSeg;
     symbolsList *symbolsList;
+    objList *objectList;
 
     loggerOn(I);
     loggerOn(D);
@@ -37,30 +28,19 @@ int main(int argc, char *argv[])
     dataSeg = getDataSegment();
     oprSeg = getOperetionSegment();
     symbolsList = getSymbolsList();
+    objectList = getObjectList();
     runEngine(argc, argv);
 
     printDataSeg(dataSeg);
     destroyDataSeg(dataSeg);
     destroySymbolsList(symbolsList);
     destroyOperetionSeg(oprSeg);
+    destroyObjList(objectList);
+    check_leaks();
+
     return 0;
 }
 
-/*
-    dataSeg *dataSeg;
-    operetionSeg *oprSeg;
-    symbolsList *symbolsList;
-
-    loggerOn(I);
-    loggerOn(D);
-
-    dataSeg = getDataSegment();
-    oprSeg = getOperetionSegment();
-    symbolsList = getSymbolsList();
-    runEngine(argc, argv);
-
-
-    printDataSeg(dataSeg);
-    destroyDataSeg(dataSeg);
-    destroySymbolsList(symbolsList);
-    destroyOperetionSeg(oprSeg); */
+// loggerOn(D);
+// loggerOn(I);
+// logger(D, "str %s", binaryToHex("0110000101000010", 0));

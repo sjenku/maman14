@@ -155,14 +155,8 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
             /* it's operetion , code it to binary and print it*/
             else
             {
-
-                codedBin = codeOperetionToBinary(operetionSeg, operetionIndex);
-                logger(D, "it's here2 %s", codedBin);
-                /* insert to objectList for manage it after when creating file.ob */
                 objectList = getObjectList();
-                insertBinaryToObj(objectList, STYLE_OPERETION, codedBin);
-                /* free memory */
-                free(codedBin);
+                codeOperetionToBinary(objectList, operetionSeg, operetionIndex);
                 operetionIndex++;
             }
         }
@@ -178,7 +172,7 @@ void runEngine(int argc, char *argv[])
     symbolsList *symbolsList;
     dataSeg *dataSeg;
     objList *objectList;
-    int ICF;
+    int ICF, DCF;
 
     operetionSeg = getOperetionSegment();
     symbolsList = getSymbolsList();
@@ -191,6 +185,8 @@ void runEngine(int argc, char *argv[])
 
     /* Handle updating address in symbols with attribute 'data' and to dataSegment */
     ICF = operetionSeg->IC;
+    DCF = dataSeg->DC;
+    logger(D, "ICF=>%d DCF=>%d", ICF, DCF);
     moveAddressDataSeg(dataSeg, ICF);
     moveAddressDataTypeSymbolsList(symbolsList, ICF);
 
@@ -201,7 +197,7 @@ void runEngine(int argc, char *argv[])
     /* Insert All Directives binary to objectListCreator */
     insertDataSegmentToObjectList(dataSeg, objectList);
     /* create .ob file */
-    createObjDataToFile(objectList);
+    createObjDataToFile(objectList, ICF - INITIAL_ADDRESS, DCF);
 }
 
 int isComment(char *word)
@@ -225,7 +221,6 @@ int isComment(char *word)
 int insertDataSegmentToObjectList(dataSeg *seg, objList *objL)
 {
     directiveNode *tmpNode;
-    char *binStr;
     int numOfCharsInValue;
     /* guard */
     if (seg == NULL || objL == NULL)
@@ -233,28 +228,18 @@ int insertDataSegmentToObjectList(dataSeg *seg, objList *objL)
         return FAILURE;
     }
 
-    printDataSeg(seg);
     tmpNode = seg->head_p;
     while (tmpNode != NULL)
     {
         numOfCharsInValue = strlen(tmpNode->value);
-        binStr = (char *)malloc(((SIZE_BYTE * directiveTypeSize(tmpNode->name))) * numOfCharsInValue + 1);
         if (strcmp(tmpNode->name, ASCIZ) == 0)
         {
-            directiveAscizToCode(tmpNode->value, numOfCharsInValue, &binStr);
-            logger(D, "1address=> %d  bin=>%s", tmpNode->address, binStr);
+            directiveAscizToCode(objL, tmpNode->value);
         }
         else
         {
-
-            directiveDbDhDwToCode(tmpNode->name, tmpNode->value, &binStr);
-            logger(D, "2address=> %d  bin=>%s", tmpNode->address, binStr);
+            directiveDbDhDwToCode(objL, tmpNode->name, tmpNode->value);
         }
-        if (strcmp(tmpNode->name, ASCIZ) == 0)
-            insertBinaryToObj(objL, STYLE_DIFF, binStr);
-        else
-            insertBinaryToObj(objL, STYLE_DATA, binStr);
-        free(binStr);
         tmpNode = tmpNode->next;
     }
     printObjList(objL);

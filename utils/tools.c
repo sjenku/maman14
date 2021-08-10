@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "../headers/tools.h"
+#include "../headers/objectCreator.h"
 
 /*Array of total logger types, the indexes of the array relative to the enum 'LoggerType',
 for example if client intrested in the logger be on to specific type,it's handled by calling 'loggerOn' method that changes
@@ -183,15 +184,21 @@ int numberToBinary(int numValue, int sizeOfBits, char **codedString)
 }
 
 /* this method return new allocated char* with hex representation of binary input 
-   this is a client responsobility to free memory that been allocated for the return value*/
-char *binaryToHex(const char *inStr)
+   this is a client responsobility to free memory that been allocated for the return value
+   the reading from binary happens from right to left*/
+char *binaryToHex(char *inStr, int fromRight)
 {
     static char hexlookup[] = "0123456789ABCDEF";
-    char *outStr, *ch;
+    char *outStr, tmp, *ch, *endP;
     char current;
-    int len = strlen(inStr) / 4;
-    int i = strlen(inStr) % 4;
-    logger(D, "inStr = %s", inStr);
+    int i;
+    /* endP points to the end of the inStr */
+    endP = inStr + strlen(inStr) - 1;
+    /* holding the number of chuncks of 4 bits */
+    int len = (strlen(inStr)) / 4;
+    /* holding the remain bits that out of 4 chuncks */
+    i = (strlen(inStr)) % 4;
+    /* the string that would be return to the client */
     outStr = (char *)malloc(len + i + 1); /* this would hold the output hex */
     ch = outStr;                          /* for move threw the output char* */
     current = 0;
@@ -199,8 +206,8 @@ char *binaryToHex(const char *inStr)
     { /* handle part that not devided by 4 */
         while (i--)
         {
-            current = (current << 1) + (*inStr - '0');
-            inStr++;
+            current = (current << 1) + (*endP - '0');
+            endP--;
         }
         *ch = hexlookup[(int)current];
         ++ch;
@@ -208,13 +215,25 @@ char *binaryToHex(const char *inStr)
     while (len--)
     {
         current = 0;
-        for (i = 0; i < 4; ++i)
+        if (fromRight)
         {
-            current = (current << 1) + (*inStr - '0');
-            inStr++;
+            endP = endP - 3;
+            for (i = 0; i < 4; ++i)
+            {
+                current = (current << 1) + (*endP - '0');
+                endP++;
+            }
+            endP = endP - 5;
+            *ch = hexlookup[(int)current];
+            /* swap the hexs */
+            if (len % 2 == 0)
+            {
+                tmp = *ch;
+                *ch = *(ch - 1);
+                *(ch - 1) = tmp;
+            }
+            ++ch;
         }
-        *ch = hexlookup[(int)current];
-        ++ch;
     }
     *ch = '\0'; /* null char */
     return outStr;

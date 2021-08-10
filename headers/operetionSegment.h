@@ -20,6 +20,8 @@
 #define J_CODE_REG_SIZE 1
 #define J_CODE_ADDRESS_SIZE 25
 
+#include "objectCreator.h"
+
 typedef struct operetionR
 {
     unsigned int empty : R_CODE_EMPTY_SIZE;
@@ -59,7 +61,7 @@ int isSignNumberOrNumber(char *str);
 
 /*public*/
 operetionSeg *getOperetionSegment();
-char *codeOperetionToBinary(operetionSeg *seg, int index);
+int codeOperetionToBinary(objList *objL, operetionSeg *seg, int index);
 int numberToBinary(int numValue, int sizeOfBits, char **codedString);
 int operetionRToCode(int opcode, int funct, int rd, int rt, int rs, char **codedString);
 char *fromOperetionToMachineCode(char *operetion, int address);

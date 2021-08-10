@@ -9,6 +9,8 @@
 
 #define SIZE_BYTE 8
 
+#include "objectCreator.h"
+
 typedef struct directiveNode
 {
     char *name;
@@ -26,8 +28,8 @@ typedef struct dataSegment
 
 dataSeg *getDataSegment();
 int directiveTypeSize(char *directiveName);
-int directiveAscizToCode(char *value, int numberOfCharsInValue, char **codedString);
-int directiveDbDhDwToCode(char *directiveType, char *value, char **codedString);
+int directiveAscizToCode(objList *objL, char *value);
+int directiveDbDhDwToCode(objList *objL, char *directiveType, char *value);
 directiveNode *getPointToDirectiveNode(dataSeg *seg, int index);
 int isExternal(char *str);
 int isEntry(char *str);
