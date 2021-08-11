@@ -72,7 +72,7 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
             /* it's mean that it must be symbol but is not so add error */
             if (totalWords == 3)
             {
-                /* it's mean the symbol already exist ,create error */
+                /* it's mean the symbol already exist ,create error (if symbol valid then it's mean it's duplicated symbol)*/
                 if (status_response == SUCCESS)
                     insertErrorTo(errorsList, filename, lineNumber, currentWord, "can't duplicate symbols");
                 else
@@ -83,14 +83,25 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
         /* set the rest line to check the values is valid for directive and opetions */
         restLine = concenateToStringFrom(seperator, wordIndex + 1);
         /* case directive word */
-        if (isValidDirectiveName(currentWord) && isValidDirectiveValues(currentWord, restLine))
+        if (isValidDirectiveName(currentWord))
         {
-            /* insert symbol if there been first word symbol */
-            if (flagSymbol == TRUE)
-                insertSymbol(symbolsList, firstWord, dataSeg->DC, ATTRIBUTE_DATA);
+            status_response = isValidDirectiveValues(currentWord, restLine);
+            if (status_response > 0)
+            {
+                /* insert symbol if there been first word symbol */
+                if (flagSymbol == TRUE)
+                    insertSymbol(symbolsList, firstWord, dataSeg->DC, ATTRIBUTE_DATA);
 
-            /* insert directive word */
-            insertDirectiveTo(dataSeg, currentWord, restLine);
+                /* insert directive word */
+                insertDirectiveTo(dataSeg, currentWord, restLine);
+            }
+            /* it's not valid directive value ,insert error if status_response negative
+                the reason for this check because isValidDirectiveValue return amount
+                of values if they valid */
+            else if (status_response < 0)
+            {
+                insertErrorTo(errorsList, filename, lineNumber, restLine, directiveErrorReason(status_response));
+            }
         }
         /* handle case the word is .external */
         else if (isExternal(currentWord))

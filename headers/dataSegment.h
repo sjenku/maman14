@@ -42,6 +42,7 @@ int destroyDataSeg(dataSeg *seg);
 int isValidDirectiveName(const char *str);
 int isValidDirectiveValues(const char *directiveType, char *str);
 int destroyDataSeg(dataSeg *seg);
+char *directiveErrorReason(int errorStatus);
 int insertDirectiveTo(dataSeg *seg, char *directiveName, char *value);
 
 #endif

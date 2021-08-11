@@ -6,6 +6,9 @@
 #include "headers/stringSeperator.h"
 #include "headers/objectCreator.h"
 
+#define ERR_ASCIZ_1 -400
+#define ERR_ASCIZ_2 -401
+
 static char *directiveWords[TOTAL_DIRECTIVE_WORDS] = {
     ASCIZ, DB, DH, DW};
 
@@ -34,6 +37,19 @@ int isValidDirectiveName(const char *str)
     return FAILURE;
 }
 
+char *directiveErrorReason(int errorStatus)
+{
+    switch (errorStatus)
+    {
+    case ERR_ASCIZ_1:
+        return "the value for directive .asciz should start with quotation marks";
+    case ERR_ASCIZ_2:
+        return "the value have to end with quatation marks";
+    default:
+        return "undefined";
+    }
+}
+
 /* this function returns number of elements if data valid ,example: '2,5,3' return 3
 and return 0 if not valid , if directiveType is .asciz then it would return number of chars
 plus one, for holding the null char example : "aBcd" return 5,if not valid return 0*/
@@ -59,7 +75,7 @@ int isValidDirectiveValues(const char *directiveType, char *str)
         /* check if the first char is " */
         if ((*ch) != '"')
         {
-            return FAILURE;
+            return ERR_ASCIZ_1;
         }
         else
         {
@@ -77,14 +93,14 @@ int isValidDirectiveValues(const char *directiveType, char *str)
                 while (*ch != '\0')
                 {
                     if (!isspace(*ch))
-                        return FAILURE;
+                        return ERR_ASCIZ_2;
                     ch++;
                 }
+                /* it's got to the end but there is no apostrophes */
             }
-            /* check case  the last char apostrophes and no more char after it */
-            else if (*ch != '"')
+            else if ((*ch) != '"')
             {
-                return FAILURE;
+                return ERR_ASCIZ_2;
             }
         }
         numOfDataElements += 1; /* stends for null char */

@@ -1,3 +1,5 @@
+/* symbols */
+-check if this is operetion name or directive name 
 
 /* register */
  check register is value from 0-31
