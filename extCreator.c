@@ -4,6 +4,9 @@
 #include "headers/extCreator.h"
 #include "headers/tools.h"
 
+/* private */
+int removeFirstExternal(extList *extL);
+
 int insertExtTo(extList *extL, char *name, int address)
 {
     /* variables */
@@ -65,18 +68,23 @@ int createExtFileFrom(extList *extL, char *filename)
 {
     /* variables */
     FILE *fileExt;
-    char fName[MAX_NAMEFILE_CHARS];
+    char *fname;
     extNode *tmpNode;
 
+    logger(D, "before guaed => %s", filename);
     /* guard */
     if (extL == NULL || extL->head_p == NULL || filename == NULL)
         return FAILURE;
 
     /* creating file*/
-    sprintf(fName, "%s%s", filename, ".ext");
-    fileExt = fopen(fName, "w");
+    fname = createFileNameWithExtension(filename, "ext");
+    if (fname == NULL)
+        return FAILURE;
+
+    fileExt = fopen(fname, "w");
     if (fileExt == NULL)
     {
+        free(fname);
         return FAILURE;
     }
 
@@ -87,5 +95,55 @@ int createExtFileFrom(extList *extL, char *filename)
         fprintf(fileExt, "%s 0%d\n", tmpNode->name, tmpNode->address);
         tmpNode = tmpNode->next;
     }
+    free(fname);
+    return SUCCESS;
+}
+int destroyExternalsList(extList *extL)
+{
+    if (extL == NULL)
+        return FAILURE;
+    removeAllExternalsFrom(extL);
+    free(extL);
+    return SUCCESS;
+}
+int removeFirstExternal(extList *extL)
+{
+    extNode *temp;
+    /*checking if queue isn't empty*/
+    if (extL->head_p == NULL)
+        return FAILURE;
+
+    /*creating temp pointer to point on the element that would be removed from the queue*/
+    temp = extL->head_p;
+    /*move the head to the next element*/
+    extL->head_p = extL->head_p->next;
+
+    /*free memory*/
+    free(temp->name);
+    free(temp);
+    return SUCCESS;
+}
+
+void printExternals(extList *extL)
+{
+    extNode *tmpNode;
+    if (extL != NULL && extL->head_p != NULL)
+    {
+        tmpNode = extL->head_p;
+        while (tmpNode != NULL)
+        {
+            logger(I, "external adress=> %d,name =>%s", tmpNode->address, tmpNode->name);
+            tmpNode = tmpNode->next;
+        }
+    }
+}
+
+int removeAllExternalsFrom(extList *extL)
+{
+    if (extL == NULL)
+        return FAILURE;
+
+    while (removeFirstExternal(extL))
+        ;
     return SUCCESS;
 }

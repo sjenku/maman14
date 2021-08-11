@@ -11,6 +11,7 @@
 #include "headers/dataSegment.h"
 #include "headers/engineCompile.h"
 #include "headers/objectCreator.h"
+#include "headers/extCreator.h"
 
 void check_leaks();
 
@@ -21,14 +22,17 @@ int main(int argc, char *argv[])
     operetionSeg *oprSeg;
     symbolsList *symbolsList;
     objList *objectList;
+    extList *extL;
 
-    // loggerOn(I);
+    loggerOn(I);
     loggerOn(D);
+    loggerOn(E);
 
     dataSeg = getDataSegment();
     oprSeg = getOperetionSegment();
     symbolsList = getSymbolsList();
     objectList = getObjectList();
+    extL = getExtList();
     runEngine(argc, argv);
 
     printDataSeg(dataSeg);
@@ -37,7 +41,8 @@ int main(int argc, char *argv[])
     destroySymbolsList(symbolsList);
     destroyOperetionSeg(oprSeg);
     destroyObjList(objectList);
-    //  check_leaks();
+    destroyExternalsList(extL);
+    check_leaks();
 
     return 0;
 }

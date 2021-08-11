@@ -19,5 +19,8 @@ int insertExtTo(extList *extL, char *name, int address);
 extList *initExtList();
 extList *getExtList();
 int createExtFileFrom(extList *extL, char *filename);
+int removeAllExternalsFrom(extList *extL);
+void printExternals(extList *extL);
+int destroyExternalsList(extList *extL);
 
 #endif

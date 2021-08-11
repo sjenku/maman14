@@ -238,3 +238,28 @@ char *binaryToHex(char *inStr, int fromRight)
     *ch = '\0'; /* null char */
     return outStr;
 }
+
+/* resultFileName have to be allocated with enough memory to hold the filename with extension */
+char *createFileNameWithExtension(char *filename, char *extension)
+{
+    char *ch;
+    char *resultedFileName;
+    /* guard */
+    if (extension == NULL || filename == NULL)
+        return NULL;
+
+    resultedFileName = (char *)malloc(FILENAME_MAX);
+    ch = filename;
+    /* remove the extension */
+    while (*ch != '\0')
+    {
+        if (*ch == '.')
+        {
+            *ch = '\0';
+        }
+        ch++;
+    }
+
+    sprintf(resultedFileName, "%s.%s", filename, extension);
+    return resultedFileName;
+}

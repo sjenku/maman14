@@ -9,7 +9,6 @@
 /* Private Methods */
 
 int removeFirstSymbol(symbolsList *symbols);
-int removeAllSymbolsFrom(symbolsList *symbols);
 
 /* Public Methods */
 char *symbolErrorReason(int errorStatus)

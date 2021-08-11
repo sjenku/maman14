@@ -27,6 +27,7 @@ typedef struct dataSegment
 } dataSeg;
 
 dataSeg *getDataSegment();
+int removeAllDataFrom(dataSeg *seg);
 int directiveTypeSize(char *directiveName);
 int directiveAscizToCode(objList *objL, char *value);
 int directiveDbDhDwToCode(objList *objL, char *directiveType, char *value);

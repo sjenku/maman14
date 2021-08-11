@@ -26,4 +26,5 @@ int isNumbersOrLetters(char *str);
 int isRegister(char *str);
 int numberToBinary(int numValue, int sizeOfBits, char **codedString);
 char *binaryToHex(char *inStr, int fromRight);
+char *createFileNameWithExtension(char *filename, char *extension);
 #endif

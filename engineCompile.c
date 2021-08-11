@@ -123,7 +123,7 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
     objList *objectList;
     int wordIndex;
     /* set index that indicates which operetion to get from operetion segment */
-    static int operetionIndex = 0;
+    int operetionIndex = 0;
     /* create seperator that is seperating the line into individuals words */
     seperator = initSeprator();
     appendStringWithSpace(seperator, line);
@@ -180,14 +180,14 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
                     {
                         /* save the external symbol with the relative address for creating later .ext file*/
                         externalsList = getExtList();
-                        logger(D, "the symbol => %s, the address => %d", tmpSymbolListNode->name, tmpOperetionNode->address - 4);
                         insertExtTo(externalsList, tmpSymbolListNode->name, tmpOperetionNode->address - IC_INCREASER);
                     }
                 }
                 /* then check if the next word is external symbol */
                 objectList = getObjectList();
-                codeOperetionToBinary(objectList, operetionSeg, operetionIndex);
-                operetionIndex++;
+                codeOperetionToBinary(objectList, tmpOperetionNode);
+                /* this operetion no more relevant,delete from list */
+                removeFirstOperetion(operetionSeg);
             }
         }
     }
@@ -197,40 +197,58 @@ END:
 
 void runEngine(int argc, char *argv[])
 {
-    void (*rulesArr[TOTAL_RULES])(char *line, int lineNumber, char *filename); /*Array of functions(Rules) applied to handle each line*/
+    void (*rulesFunc)(char *line, int lineNumber, char *filename); /*Array of functions(Rules) applied to handle each line*/
     operetionSeg *operetionSeg;
     symbolsList *symbolsList;
     dataSeg *dataSeg;
     objList *objectList;
-    int ICF, DCF;
+    extList *extList;
+    char *filename;
+    int ICF, DCF, fileNumber;
 
+    /* set all data holders relevant to compile */
     operetionSeg = getOperetionSegment();
     symbolsList = getSymbolsList();
     dataSeg = getDataSegment();
     objectList = getObjectList();
+    extList = getExtList();
 
-    /* Set of functions that will be implemented on each line of the file*/
-    rulesArr[0] = engineWorkFlowForLineFirst;
-    runRulessOnLinesOfFile(argc, argv, TOTAL_RULES, rulesArr);
+    /* run this engine on each file */
+    for (fileNumber = 1; fileNumber < argc; fileNumber++)
+    {
+        /* Set of functions that will be implemented on each line of the file*/
+        rulesFunc = engineWorkFlowForLineFirst;
+        filename = argv[fileNumber];
+        runRulessOnLinesOfFile(filename, rulesFunc);
 
-    /* Handle updating address in symbols with attribute 'data' and to dataSegment */
-    ICF = operetionSeg->IC;
-    DCF = dataSeg->DC;
-    moveAddressDataSeg(dataSeg, ICF);
-    moveAddressDataTypeSymbolsList(symbolsList, ICF);
+        /* Handle updating address in symbols with attribute 'data' and to dataSegment */
+        ICF = operetionSeg->IC;
+        DCF = dataSeg->DC;
+        moveAddressDataSeg(dataSeg, ICF);
+        moveAddressDataTypeSymbolsList(symbolsList, ICF);
 
-    /* Start Second Workflow */
-    rulesArr[0] = engineWorkFlowForLineSecond;
-    runRulessOnLinesOfFile(argc, argv, TOTAL_RULES, rulesArr);
+        /* Start Second Workflow */
+        rulesFunc = engineWorkFlowForLineSecond;
+        runRulessOnLinesOfFile(filename, rulesFunc);
 
-    /* Insert All Directives binary to objectListCreator */
-    insertDataSegmentToObjectList(dataSeg, objectList);
-    /* create .ob file */
-    createObjDataToFile(objectList, ICF - INITIAL_ADDRESS, DCF);
-    /* create .ent file */
-    createEntFile();
-    /* create .ext file */
-    createExtFileFrom(getExtList(), "something");
+        /* Insert All Directives binary to objectListCreator */
+        insertDataSegmentToObjectList(dataSeg, objectList);
+
+        /* create .ob file */
+        createObjDataToFile(objectList, ICF - INITIAL_ADDRESS, DCF, filename);
+        /* create .ent file */
+        createEntFile(filename);
+        /* create .ext file */
+        printExternals(extList);
+        createExtFileFrom(extList, filename);
+
+        /* clear data holders for next file */
+        removeAllOperetionsFrom(operetionSeg);
+        removeAllSymbolsFrom(symbolsList);
+        removeAllDataFrom(dataSeg);
+        removeAllObjectsFrom(objectList);
+        removeAllExternalsFrom(extList);
+    }
 }
 
 int isComment(char *word)
@@ -280,20 +298,28 @@ int insertDataSegmentToObjectList(dataSeg *seg, objList *objL)
 
 /* this method takes all symbols,iterate threw them and create file containing 
    address and symbols that declared as .entry */
-int createEntFile()
+int createEntFile(char *filename)
 {
 
     symbolsList *symbols;
     symbolListNode *tmpNode;
     FILE *fileEnt;
+    char *fname;
     symbols = getSymbolsList();
     /* guard */
     if (symbols->head_p == NULL)
         return FAILURE;
 
-    fileEnt = fopen("ent.txt", "w");
-    if (fileEnt == NULL)
+    fname = createFileNameWithExtension(filename, "ent");
+    if (fname == NULL)
         return FAILURE;
+
+    fileEnt = fopen(fname, "w");
+    if (fileEnt == NULL)
+    {
+        free(fname);
+        return FAILURE;
+    }
 
     /* iterate threw the list of symbols */
     tmpNode = symbols->head_p;
@@ -305,5 +331,6 @@ int createEntFile()
         }
         tmpNode = tmpNode->next;
     }
+    free(fname);
     return SUCCESS;
 }

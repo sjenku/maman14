@@ -62,7 +62,7 @@ int isSignNumberOrNumber(char *str);
 /*public*/
 operetionSeg *getOperetionSegment();
 operetionInfo *getOperetionInfo(char *operetionName);
-int codeOperetionToBinary(objList *objL, operetionSeg *seg, int index);
+int codeOperetionToBinary(objList *objL, operetionNode *oprNode);
 int numberToBinary(int numValue, int sizeOfBits, char **codedString);
 int operetionRToCode(int opcode, int funct, int rd, int rt, int rs, char **codedString);
 char *fromOperetionToMachineCode(char *operetion, int address);
@@ -73,5 +73,7 @@ int isValidOperationName(const char *str);
 int destroyOperetionSeg(operetionSeg *seg);
 int insertOperetionTo(operetionSeg *seg, char *operetion, char *value);
 operetionNode *getPointToOpertionFromSeg(operetionSeg *seg, int index);
+int removeFirstOperetion(operetionSeg *seg);
+int removeAllOperetionsFrom(operetionSeg *seg);
 
 #endif

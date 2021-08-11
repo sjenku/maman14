@@ -11,7 +11,6 @@ static char *directiveWords[TOTAL_DIRECTIVE_WORDS] = {
 
 /* private */
 int removeFirstDirective(dataSeg *seg);
-int removeAllDataFrom(dataSeg *seg);
 
 /* public */
 
@@ -280,6 +279,7 @@ int removeAllDataFrom(dataSeg *seg)
 
     while (removeFirstDirective(seg))
         ;
+    seg->DC = 0;
     return SUCCESS;
 }
 

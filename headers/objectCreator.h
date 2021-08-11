@@ -34,6 +34,6 @@ int removeAllObjectsFrom(objList *objL);
 int removeFirstObjNode(objList *objL);
 
 /* manager data of the list */
-int createObjDataToFile(objList *objL, int operetionsHolding, int dataHolding);
+int createObjDataToFile(objList *objL, int operetionsHolding, int dataHolding, char *filename);
 
 #endif

@@ -6,12 +6,14 @@
 
 /* manage data of the list */
 /* operetionHolding and dataHolding is address holding each segment ICF-INITIAL_ADDRESS & DFC */
-int createObjDataToFile(objList *objL, int operetionsHolding, int dataHolding)
+int createObjDataToFile(objList *objL, int operetionsHolding, int dataHolding, char *filename)
 {
     /* tmpNode for iterate threw the list of object data */
     objNode *tmpNode;
     /* stores the hex representation of binary code that stored in objectlist in each node */
     char *dataHex;
+    /* stores the file name with the extension */
+    char *fname;
     /* start address */
     int address;
     /* i - for iterating , length - would hold the length of hex code for each node,
@@ -26,7 +28,10 @@ int createObjDataToFile(objList *objL, int operetionsHolding, int dataHolding)
         tmpNode = objL->head_p;
         i = length = totalChars = 0;
         dataHex = NULL;
-        fileObj = fopen("obj.txt", "w");
+        logger(D, "one");
+        fname = createFileNameWithExtension(filename, "ob");
+        logger(D, "two");
+        fileObj = fopen(fname, "w");
         if (fileObj == NULL)
             return FAILURE;
         /* iterate threw list */
@@ -67,21 +72,12 @@ int createObjDataToFile(objList *objL, int operetionsHolding, int dataHolding)
             /* free memory */
             free(dataHex);
         }
+        free(fname);
         fclose(fileObj);
         return SUCCESS;
     }
     return FAILURE;
 }
-
-/*
-void swap(char *ch1, char *ch2)
-{
-    char tmpCh;
-    tmpCh = *ch1;
-    *ch1 = *ch2;
-    *ch2 = tmpCh;
-}
-*/
 
 /* menage the list */
 

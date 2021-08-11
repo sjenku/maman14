@@ -291,9 +291,8 @@ int isValidOperetionValue(const char *operetionName, char *values)
 /* this method code the operetion saved in operetion segment to binary.
     after the operetion coded to binary it's saved to objList that holds all 
     binary code that been created*/
-int codeOperetionToBinary(objList *objL, operetionSeg *seg, int index)
+int codeOperetionToBinary(objList *objL, operetionNode *oprNode)
 {
-    operetionNode *oprNode;
     operetionInfo *oprInfo;
     symbolsList *symbols;
     symbolListNode *symbolNode;
@@ -303,17 +302,13 @@ int codeOperetionToBinary(objList *objL, operetionSeg *seg, int index)
     /* this will hold coded binary */
     char *codedString;
     /* guards */
-    if (seg == NULL || seg->head_p == NULL)
-        return FAILURE;
-    if (index >= totalOperetionsInSeg(seg))
+    if (oprNode == NULL || objL == NULL)
         return FAILURE;
 
     /* set inital values */
     rs = rt = rd = immed = 0;
     /* allocate memory for holding the coded string */
     codedString = (char *)malloc(CODE_BUFFER_SIZE + 1);
-    /* retrieve the opretion node from all operetions that saved in operetion segment */
-    oprNode = getPointToOpertionFromSeg(seg, index);
     /* get the relative information about that operetion */
     oprInfo = getOperetionInfo(oprNode->name);
     /* init new seperetor */
@@ -614,6 +609,7 @@ int removeAllOperetionsFrom(operetionSeg *seg)
 
     while (removeFirstOperetion(seg))
         ;
+    seg->IC = INITIAL_ADDRESS;
     return SUCCESS;
 }
 

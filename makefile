@@ -26,4 +26,4 @@ leacks_cheker_ex.o: leacks_cheker_ex.c
 	gcc -c leacks_cheker_ex.c -o leacks_cheker_ex.o
 
 clean:
-	rm *.o assembler
+	rm *.o assembler testFiles/*.ob testFiles/*.ext testFiles/*.ent

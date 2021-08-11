@@ -1,6 +1,5 @@
 #ifndef _ENGINE_COMPILE
 #define _ENGINE_COMPILE
-#define TOTAL_RULES 1
 
 /*TODO: Need to transfer to seperate file the isComment etc. */
 int isComment(char *str);
