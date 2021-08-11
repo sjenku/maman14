@@ -191,11 +191,11 @@ char *binaryToHex(char *inStr, int fromRight)
     static char hexlookup[] = "0123456789ABCDEF";
     char *outStr, tmp, *ch, *endP;
     char current;
-    int i;
+    int i, len;
     /* endP points to the end of the inStr */
     endP = inStr + strlen(inStr) - 1;
     /* holding the number of chuncks of 4 bits */
-    int len = (strlen(inStr)) / 4;
+    len = (strlen(inStr)) / 4;
     /* holding the remain bits that out of 4 chuncks */
     i = (strlen(inStr)) % 4;
     /* the string that would be return to the client */

@@ -363,7 +363,6 @@ int directiveDbDhDwToCode(objList *objL, char *directiveType, char *value)
         val = atoi(getPointerToWord(sep, i));
         /* code to binary */
         numberToBinary(val, bitsSize, &tmpCodedString);
-        logger(D, "val atoi => %d,tmpCoded = %s,i = %d", val, tmpCodedString, i);
         insertBinaryToObj(objL, tmpCodedString);
     }
     /* free memory */
@@ -375,7 +374,6 @@ int directiveDbDhDwToCode(objList *objL, char *directiveType, char *value)
 int directiveAscizToCode(objList *objL, char *value)
 {
     char *ch;
-    int i;
     char *byteCodedString;
 
     /* guard */

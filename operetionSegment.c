@@ -41,8 +41,6 @@ int totalOperations();
 int registerToInt(char *str);
 int removeFirstOperetion(operetionSeg *seg);
 int removeAllOperetionsFrom(operetionSeg *seg);
-operetionInfo *getOperetionInfo(char *operetionName);
-operetionNode *getPointToOpertionFromSeg(operetionSeg *seg, int index);
 int totalOperetionsInSeg(operetionSeg *seg);
 
 /* Public */
@@ -316,7 +314,6 @@ int codeOperetionToBinary(objList *objL, operetionSeg *seg, int index)
     codedString = (char *)malloc(CODE_BUFFER_SIZE + 1);
     /* retrieve the opretion node from all operetions that saved in operetion segment */
     oprNode = getPointToOpertionFromSeg(seg, index);
-    logger(D, "oprNode->%s", oprNode->name);
     /* get the relative information about that operetion */
     oprInfo = getOperetionInfo(oprNode->name);
     /* init new seperetor */
@@ -339,7 +336,6 @@ int codeOperetionToBinary(objList *objL, operetionSeg *seg, int index)
             rd = registerToInt(getPointerToWord(sep, 2));
         }
         operetionRToCode(oprInfo->opcode, oprInfo->funct, rd, rt, rs, &codedString);
-        logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
     }
     else if (oprInfo->type == 'I')
     {
@@ -374,7 +370,6 @@ int codeOperetionToBinary(objList *objL, operetionSeg *seg, int index)
             rt = registerToInt(getPointerToWord(sep, 3));
         }
         operetionIToCode(oprInfo->opcode, rs, rt, immed, &codedString);
-        logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
     }
     else if (oprInfo->type == 'J')
     {
@@ -415,7 +410,6 @@ int codeOperetionToBinary(objList *objL, operetionSeg *seg, int index)
         }
         /* code to binary */
         operetionJToCode(oprInfo->opcode, reg, address, &codedString);
-        logger(D, "it's operetion ->%s val->%s coded-> %s", oprNode->name, oprNode->value, codedString);
     }
     destroySeperator(sep);
     insertBinaryToObj(objL, codedString);

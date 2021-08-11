@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     symbolsList *symbolsList;
     objList *objectList;
 
-    loggerOn(I);
+    // loggerOn(I);
     loggerOn(D);
 
     dataSeg = getDataSegment();
@@ -32,11 +32,12 @@ int main(int argc, char *argv[])
     runEngine(argc, argv);
 
     printDataSeg(dataSeg);
+    printSymbols(symbolsList);
     destroyDataSeg(dataSeg);
     destroySymbolsList(symbolsList);
     destroyOperetionSeg(oprSeg);
     destroyObjList(objectList);
-    check_leaks();
+    //  check_leaks();
 
     return 0;
 }

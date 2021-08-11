@@ -8,7 +8,6 @@
 /* operetionHolding and dataHolding is address holding each segment ICF-INITIAL_ADDRESS & DFC */
 int createObjDataToFile(objList *objL, int operetionsHolding, int dataHolding)
 {
-    printObjList(objL);
     /* tmpNode for iterate threw the list of object data */
     objNode *tmpNode;
     /* stores the hex representation of binary code that stored in objectlist in each node */
@@ -28,7 +27,6 @@ int createObjDataToFile(objList *objL, int operetionsHolding, int dataHolding)
         i = length = totalChars = 0;
         dataHex = NULL;
         fileObj = fopen("obj.txt", "w");
-        logger(D, "creating file");
         if (fileObj == NULL)
             return FAILURE;
         /* iterate threw list */

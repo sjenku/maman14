@@ -101,7 +101,7 @@ symbolListNode *getPointerToSymbol(symbolsList *symbols, char *symbolName)
 {
     symbolListNode *tmpNode;
     /* guard */
-    if (symbols == NULL || symbols->head_p == NULL)
+    if (symbols == NULL || symbols->head_p == NULL || symbolName == NULL)
         return NULL;
 
     tmpNode = symbols->head_p;

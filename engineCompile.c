@@ -1,6 +1,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <ctype.h>
 #include "headers/tools.h"
 #include "headers/inputHandler.h"
@@ -10,9 +11,11 @@
 #include "headers/dataSegment.h"
 #include "headers/operetionSegment.h"
 #include "headers/objectCreator.h"
+#include "headers/extCreator.h"
 
 /* private */
 int insertDataSegmentToObjectList(dataSeg *seg, objList *objL);
+int createEntFile();
 
 /* this function set the workflow that actually the algorithm that handle each line */
 void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
@@ -110,10 +113,13 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
 void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
 {
     char *firstWord, *currentWord, *symbolName;
-    char *codedBin;
     seperator *seperator;
     operetionSeg *operetionSeg;
+    operetionNode *tmpOperetionNode;
+    operetionInfo *tmpOperetionInfo;
     symbolsList *symbolList;
+    symbolListNode *tmpSymbolListNode;
+    extList *externalsList;
     objList *objectList;
     int wordIndex;
     /* set index that indicates which operetion to get from operetion segment */
@@ -123,6 +129,8 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
     appendStringWithSpace(seperator, line);
     /* get the pointer to the symbolsList */
     symbolList = getSymbolsList();
+    /* set initial val for tmpSymbolListNode that would point to the symbol from symbol list */
+    tmpSymbolListNode = NULL;
     /* get the pointer to the saved operetions from the first workflow */
     operetionSeg = getOperetionSegment();
     /* set index to know on witch word we looking at */
@@ -155,6 +163,28 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
             /* it's operetion , code it to binary and print it*/
             else
             {
+                /* case that is external val */
+                /* get the node for current operetion in line*/
+                tmpOperetionNode = getPointToOpertionFromSeg(operetionSeg, operetionIndex);
+                /* guard */
+                if (tmpOperetionNode == NULL)
+                    goto END;
+                /* check if it's J type */
+                tmpOperetionInfo = getOperetionInfo(tmpOperetionNode->name);
+                if (tmpOperetionInfo->type == 'J')
+                {
+                    /* get the symbol node that mentioned as value */
+                    tmpSymbolListNode = getPointerToSymbol(symbolList, getPointerToWord(seperator, wordIndex + 1));
+                    /* check if this valid symbol and it's exist in the symbol list */
+                    if (tmpSymbolListNode != NULL)
+                    {
+                        /* save the external symbol with the relative address for creating later .ext file*/
+                        externalsList = getExtList();
+                        logger(D, "the symbol => %s, the address => %d", tmpSymbolListNode->name, tmpOperetionNode->address - 4);
+                        insertExtTo(externalsList, tmpSymbolListNode->name, tmpOperetionNode->address - IC_INCREASER);
+                    }
+                }
+                /* then check if the next word is external symbol */
                 objectList = getObjectList();
                 codeOperetionToBinary(objectList, operetionSeg, operetionIndex);
                 operetionIndex++;
@@ -186,7 +216,6 @@ void runEngine(int argc, char *argv[])
     /* Handle updating address in symbols with attribute 'data' and to dataSegment */
     ICF = operetionSeg->IC;
     DCF = dataSeg->DC;
-    logger(D, "ICF=>%d DCF=>%d", ICF, DCF);
     moveAddressDataSeg(dataSeg, ICF);
     moveAddressDataTypeSymbolsList(symbolsList, ICF);
 
@@ -198,6 +227,10 @@ void runEngine(int argc, char *argv[])
     insertDataSegmentToObjectList(dataSeg, objectList);
     /* create .ob file */
     createObjDataToFile(objectList, ICF - INITIAL_ADDRESS, DCF);
+    /* create .ent file */
+    createEntFile();
+    /* create .ext file */
+    createExtFileFrom(getExtList(), "something");
 }
 
 int isComment(char *word)
@@ -242,6 +275,35 @@ int insertDataSegmentToObjectList(dataSeg *seg, objList *objL)
         }
         tmpNode = tmpNode->next;
     }
-    printObjList(objL);
+    return SUCCESS;
+}
+
+/* this method takes all symbols,iterate threw them and create file containing 
+   address and symbols that declared as .entry */
+int createEntFile()
+{
+
+    symbolsList *symbols;
+    symbolListNode *tmpNode;
+    FILE *fileEnt;
+    symbols = getSymbolsList();
+    /* guard */
+    if (symbols->head_p == NULL)
+        return FAILURE;
+
+    fileEnt = fopen("ent.txt", "w");
+    if (fileEnt == NULL)
+        return FAILURE;
+
+    /* iterate threw the list of symbols */
+    tmpNode = symbols->head_p;
+    while (tmpNode != NULL)
+    {
+        if (strcmp(tmpNode->attribute, ATTRIBUTE_DATA_ENTRY) == 0)
+        {
+            fprintf(fileEnt, "%s 0%d\n", tmpNode->name, tmpNode->address);
+        }
+        tmpNode = tmpNode->next;
+    }
     return SUCCESS;
 }
