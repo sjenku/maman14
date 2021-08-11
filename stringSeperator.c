@@ -51,7 +51,8 @@ int appendStringWithComma(seperator *seperator, char *str)
         else
         {
             charCounter++;
-            commaFlag = FALSE;
+            if (!isspace(*ch))
+                commaFlag = FALSE;
         }
     }
     /* check if the last char is 'comma' ,if it is return failure,otherwise return success */

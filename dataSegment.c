@@ -9,11 +9,22 @@
 #define ERR_ASCIZ_1 -400
 #define ERR_ASCIZ_2 -401
 
+#define ERR_DBDHDW_1 -501
+#define ERR_DBDHDW_2 -502
+#define ERR_DBDHDW_3 -503
+#define ERR_DBDHDW_4 -504
+#define ERR_DBDHDW_5 -505
+#define ERR_DBDHDW_6 -506
+#define ERR_DBDHDW_7 -507
+#define ERR_DBDHDW_8 -508
+#define ERR_DIRECTIVE_1 -601
+
 static char *directiveWords[TOTAL_DIRECTIVE_WORDS] = {
     ASCIZ, DB, DH, DW};
 
 /* private */
 int removeFirstDirective(dataSeg *seg);
+int maxValueNumber(const char *directiveType, int positive);
 
 /* public */
 
@@ -45,11 +56,151 @@ char *directiveErrorReason(int errorStatus)
         return "the value for directive .asciz should start with quotation marks";
     case ERR_ASCIZ_2:
         return "the value have to end with quatation marks";
+    case ERR_DBDHDW_1:
+        return "each value should be seperated with comma";
+    case ERR_DBDHDW_2:
+        return "can't declare 0 values";
+    case ERR_DBDHDW_3:
+        return "wrong input of number sign '+' or '-'";
+    case ERR_DBDHDW_4:
+        return "wrong input of space in value";
+    case ERR_DBDHDW_5:
+        return "wrong input of number in value";
+    case ERR_DBDHDW_7:
+        return "wrong chars for val";
+    case ERR_DBDHDW_8:
+        return "out of bounderies of max value allowed(positive or negative)";
+    case ERR_DIRECTIVE_1:
+        return "can't be empty value";
     default:
         return "undefined";
     }
 }
 
+int isValidDirectiveValuesDbDhDw(const char *directiveType, char *str)
+{
+    seperator *sep;
+    char *val;
+    char *ch;
+    int numberOfValues;
+    int status_response, valueNumber;
+    int allowedNumberSign, allowedSpace, allowedNumber, lastWasNumber;
+    int i;
+    /* create seperator to seperate the value with comma */
+    sep = initSeprator();
+    status_response = appendStringWithComma(sep, str);
+
+    /* when sepereting with comma it's checking also for correctenss of commas */
+    if (status_response == FAILURE)
+    {
+        destroySeperator(sep);
+        return ERR_DBDHDW_1;
+    }
+
+    /* set the number of values */
+    numberOfValues = numberOfWords(sep);
+    if (numberOfValues == 0)
+    {
+        destroySeperator(sep);
+        return ERR_DBDHDW_2;
+    }
+
+    /* iterate threw the values */
+    for (i = 0; i < numberOfValues; i++)
+    {
+        lastWasNumber = FALSE;
+        allowedNumberSign = TRUE;
+        allowedSpace = TRUE;
+        allowedNumber = TRUE;
+        val = getPointerToWord(sep, i + 1);
+        /* iterate threw each char in val */
+        for (ch = val; (*ch) != '\0'; ch++)
+        {
+            /* case it's a number sign */
+            if ((*ch) == '-' || (*ch) == '+')
+            {
+                if (!allowedNumberSign)
+                {
+                    destroySeperator(sep);
+                    return ERR_DBDHDW_3;
+                }
+                else
+                {
+                    allowedNumberSign = FALSE;
+                    allowedSpace = FALSE;
+                    allowedNumber = TRUE;
+                }
+            }
+            /* case it's space */
+            else if (isspace(*ch))
+            {
+                if (!allowedSpace)
+                {
+                    destroySeperator(sep);
+                    return ERR_DBDHDW_4;
+                }
+                else if (lastWasNumber)
+                {
+                    allowedNumber = FALSE;
+                    allowedNumberSign = FALSE;
+                    allowedSpace = TRUE;
+                }
+            }
+            /* case it's number */
+            else if (isnumber(*ch))
+            {
+                if (!allowedNumber)
+                {
+                    destroySeperator(sep);
+                    return ERR_DBDHDW_5;
+                }
+                else
+                {
+                    allowedNumber = TRUE;
+                    allowedNumberSign = FALSE;
+                    allowedSpace = TRUE;
+                    lastWasNumber = TRUE;
+                }
+            }
+            /* wrong char for val */
+            else
+            {
+                destroySeperator(sep);
+                return ERR_DBDHDW_7;
+            }
+        }
+        /* the val passed the checks that mentioned ,now check for value size */
+        valueNumber = 0; /* inital value */
+        valueNumber = atoi(val);
+        if (valueNumber < maxValueNumber(directiveType, NEGATIVE) || valueNumber > maxValueNumber(directiveType, POSITIVE))
+        {
+            destroySeperator(sep);
+            return ERR_DBDHDW_8;
+        }
+    }
+    destroySeperator(sep);
+    return SUCCESS;
+}
+/* this function give the valid max positive or negative value capable to hold by this directive type */
+int maxValueNumber(const char *directiveType, int positive)
+{
+    int amountOfBytes;
+    amountOfBytes = directiveTypeSize(directiveType);
+    switch (amountOfBytes)
+    {
+    case 1:
+        return positive ? MAX_VAL_POSITIVE_BYTE : MAX_VAL_NEGATIVE_BYTE;
+        break;
+    case 2:
+        return positive ? MAX_VAL_POSITIVE_2_BYTE : MAX_VAL_NEGATIVE_2_BYTE;
+        break;
+    case 4:
+        return positive ? MAX_VAL_POSITIVE_4_BYTE : MAX_VAL_NEGATIVE_4_BYTE;
+        break;
+    default:
+        return FAILURE;
+    }
+}
 /* this function returns number of elements if data valid ,example: '2,5,3' return 3
 and return 0 if not valid , if directiveType is .asciz then it would return number of chars
 plus one, for holding the null char example : "aBcd" return 5,if not valid return 0*/
@@ -63,6 +214,10 @@ int isValidDirectiveValues(const char *directiveType, char *str)
     /* set initial values for flags */
     allowedComma = prevCharNumber = FALSE;
     allowedNumber = allowedSpace = allowedSign = allowedApostrophes = TRUE;
+    if (directiveType == NULL)
+        return FAILURE;
+    if (str == NULL)
+        return ERR_DIRECTIVE_1;
 
     /* -------------handle case if it's ASCIZ type------------------ */
     if (strcmp(directiveType, ASCIZ) == 0)
@@ -106,62 +261,12 @@ int isValidDirectiveValues(const char *directiveType, char *str)
         numOfDataElements += 1; /* stends for null char */
         return numOfDataElements;
     }
-
     /* -----------handle other types (.dh,.dw,.db)-------------- */
-    numOfDataElements = 1;
-    if (str == NULL || strcmp(str, "") == 0)
-        return FAILURE;
-
-    ch = str;
-    while ((*ch) != '\0')
+    else
     {
-        /* Space */
-        if (((*ch) == ' ' || (*ch) == '\t'))
-        {
-
-            if (prevCharNumber)
-                allowedNumber = FALSE;
-        }
-        /* Comma */
-        else if ((*ch) == ',' && allowedComma)
-        {
-
-            numOfDataElements++;
-            allowedComma = FALSE;
-            allowedNumber = TRUE;
-            prevCharNumber = FALSE;
-            allowedSign = TRUE;
-        }
-        /* Number */
-        else if ((*ch) >= '0' && (*ch) <= '9' && allowedNumber)
-        {
-            allowedComma = TRUE;
-            prevCharNumber = TRUE;
-            allowedSign = FALSE;
-        }
-        /* Sing */
-        else if (((*ch) == '-' || (*ch == '+')) && allowedSign)
-        {
-            allowedSign = FALSE;
-            allowedNumber = TRUE;
-            allowedComma = FALSE;
-            allowedSpace = FALSE;
-        }
-        else
-        {
-            return FAILURE;
-        }
-        ch++;
+        return isValidDirectiveValuesDbDhDw(directiveType, str);
     }
-
-    /*TODO: handle in for loop with strlen to insert it up*/
-    /*check if the last char is comma or sign*/
-    if ((*(ch - 1) == ',') || (*(ch - 1) == '-') || (*(ch - 1) == '+'))
-        return FAILURE;
-
-    return numOfDataElements;
 }
-
 /* return the appropriate size for the value */
 int sizeOfValueBytes(char *dataType, char *value)
 {
@@ -241,7 +346,7 @@ int insertDirectiveTo(dataSeg *seg, char *directiveName, char *value)
     return SUCCESS;
 }
 
-int directiveTypeSize(char *directiveName)
+int directiveTypeSize(const char *directiveName)
 {
     if (strcmp(directiveName, ASCIZ) == 0)
         return 1;

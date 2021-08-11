@@ -69,7 +69,11 @@ int printErrors(errors *errors)
     tmpNode = errors->head_p;
     while (tmpNode != NULL)
     {
-        logger(E, "[Filename]:%s,[Line]:%d,[ErrorReason]:%s,[Info]:%s", tmpNode->filename, tmpNode->lineNumber, tmpNode->errorTrigger, tmpNode->info);
+        /* errorTrigger allowed to be NULL,for safety check if it exist when printing*/
+        if (tmpNode->errorTrigger != NULL)
+            logger(E, "[Filename]:%s,[Line]:%d,[ErrorReason]:%s,[Info]:%s", tmpNode->filename, tmpNode->lineNumber, tmpNode->errorTrigger, tmpNode->info);
+        else
+            logger(E, "[Filename]:%s,[Line]:%d,[Info]:%s", tmpNode->filename, tmpNode->lineNumber, tmpNode->info);
         tmpNode = tmpNode->next;
     }
     return SUCCESS;
