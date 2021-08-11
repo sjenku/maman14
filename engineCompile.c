@@ -12,6 +12,7 @@
 #include "headers/operetionSegment.h"
 #include "headers/objectCreator.h"
 #include "headers/extCreator.h"
+#include "headers/errors.h"
 
 /* private */
 int insertDataSegmentToObjectList(dataSeg *seg, objList *objL);
@@ -24,9 +25,10 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
     seperator *seperator;
     symbolsList *symbolsList;
     operetionSeg *operetionSeg;
+    errors *errorsList;
     dataSeg *dataSeg;
 
-    int flagSymbol, wordIndex, length;
+    int flagSymbol, totalWords, wordIndex, length, status_response;
     char *firstWord;
     char *tmpWord;
     char *currentWord;
@@ -45,21 +47,37 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
     /* create seperator that is seperating the line into individuals words */
     seperator = initSeprator();
     appendStringWithSpace(seperator, line);
-
+    /* create singelton errorsList that would hold errors accured during compiling */
+    errorsList = getErrorList();
     /* set pointer to the first word */
     firstWord = getPointerToWord(seperator, 1);
     currentWord = getPointerToWord(seperator, wordIndex);
+    totalWords = numberOfWords(seperator);
 
     /* if first word is NULL it's mean there was an empty line */
     if (currentWord != NULL && !isComment(currentWord))
     {
-        /* check if valid symbol name ,if it is, move the index to look on the next word and set
+        /* check if valid symbol name ,if it is, move the index to look to the next word and set
         the symbol's flag to be true*/
-        if (isValidSymbolName(currentWord) == SUCCESS && !isSymbolExist(symbolsList, currentWord))
+        status_response = isValidSymbolName(currentWord);
+        if (status_response == SUCCESS && !isSymbolExist(symbolsList, currentWord))
         {
             flagSymbol = TRUE;
             wordIndex++;
             currentWord = getPointerToWord(seperator, wordIndex);
+        }
+        /* this is not a valid symbol */
+        else
+        {
+            /* it's mean that it must be symbol but is not so add error */
+            if (totalWords == 3)
+            {
+                /* it's mean the symbol already exist ,create error */
+                if (status_response == SUCCESS)
+                    insertErrorTo(errorsList, filename, lineNumber, currentWord, "can't duplicate symbols");
+                else
+                    insertErrorTo(errorsList, filename, lineNumber, currentWord, symbolErrorReason(status_response));
+            }
         }
 
         /* set the rest line to check the values is valid for directive and opetions */
@@ -203,6 +221,7 @@ void runEngine(int argc, char *argv[])
     dataSeg *dataSeg;
     objList *objectList;
     extList *extList;
+    errors *errorsList;
     char *filename;
     int ICF, DCF, fileNumber;
 
@@ -212,6 +231,7 @@ void runEngine(int argc, char *argv[])
     dataSeg = getDataSegment();
     objectList = getObjectList();
     extList = getExtList();
+    errorsList = getErrorList();
 
     /* run this engine on each file */
     for (fileNumber = 1; fileNumber < argc; fileNumber++)
@@ -220,27 +240,31 @@ void runEngine(int argc, char *argv[])
         rulesFunc = engineWorkFlowForLineFirst;
         filename = argv[fileNumber];
         runRulessOnLinesOfFile(filename, rulesFunc);
+        printErrors(errorsList);
+        /* if errors accured after first iteretion */
+        if (isEmptyErrorList(errorsList))
+        {
+            /* Handle updating address in symbols with attribute 'data' and to dataSegment */
+            ICF = operetionSeg->IC;
+            DCF = dataSeg->DC;
+            moveAddressDataSeg(dataSeg, ICF);
+            moveAddressDataTypeSymbolsList(symbolsList, ICF);
 
-        /* Handle updating address in symbols with attribute 'data' and to dataSegment */
-        ICF = operetionSeg->IC;
-        DCF = dataSeg->DC;
-        moveAddressDataSeg(dataSeg, ICF);
-        moveAddressDataTypeSymbolsList(symbolsList, ICF);
+            /* Start Second Workflow */
+            rulesFunc = engineWorkFlowForLineSecond;
+            runRulessOnLinesOfFile(filename, rulesFunc);
 
-        /* Start Second Workflow */
-        rulesFunc = engineWorkFlowForLineSecond;
-        runRulessOnLinesOfFile(filename, rulesFunc);
+            /* Insert All Directives binary to objectListCreator */
+            insertDataSegmentToObjectList(dataSeg, objectList);
 
-        /* Insert All Directives binary to objectListCreator */
-        insertDataSegmentToObjectList(dataSeg, objectList);
-
-        /* create .ob file */
-        createObjDataToFile(objectList, ICF - INITIAL_ADDRESS, DCF, filename);
-        /* create .ent file */
-        createEntFile(filename);
-        /* create .ext file */
-        printExternals(extList);
-        createExtFileFrom(extList, filename);
+            /* create .ob file */
+            createObjDataToFile(objectList, ICF - INITIAL_ADDRESS, DCF, filename);
+            /* create .ent file */
+            createEntFile(filename);
+            /* create .ext file */
+            printExternals(extList);
+            createExtFileFrom(extList, filename);
+        }
 
         /* clear data holders for next file */
         removeAllOperetionsFrom(operetionSeg);
@@ -248,6 +272,7 @@ void runEngine(int argc, char *argv[])
         removeAllDataFrom(dataSeg);
         removeAllObjectsFrom(objectList);
         removeAllExternalsFrom(extList);
+        removeAllErrors(errorsList);
     }
 }
 

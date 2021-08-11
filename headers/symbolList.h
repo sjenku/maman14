@@ -6,6 +6,8 @@
 #define ATTRIBUTE_EXTERNAL "external"
 #define ATTRIBUTE_DATA_ENTRY "data,entry"
 
+#define MAX_SYMBOLE_LENGTH 31
+
 typedef struct symbolListNode
 {
     int address;
@@ -33,5 +35,6 @@ int moveAddressDataTypeSymbolsList(symbolsList *symbols, int amount);
 int insertSymbol(symbolsList *symbols, char *symbolName, int address, char *attribute);
 void printSymbols(symbolsList *symbols);
 int destroySymbolsList(symbolsList *symbols);
+char *symbolErrorReason(int errorStatus);
 
 #endif

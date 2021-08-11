@@ -28,9 +28,7 @@ int createObjDataToFile(objList *objL, int operetionsHolding, int dataHolding, c
         tmpNode = objL->head_p;
         i = length = totalChars = 0;
         dataHex = NULL;
-        logger(D, "one");
         fname = createFileNameWithExtension(filename, "ob");
-        logger(D, "two");
         fileObj = fopen(fname, "w");
         if (fileObj == NULL)
             return FAILURE;

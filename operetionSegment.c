@@ -349,7 +349,6 @@ int codeOperetionToBinary(objList *objL, operetionNode *oprNode)
             symbols = getSymbolsList();
             /* find the symbol passed as 3 param */
             symbolNode = getPointerToSymbol(symbols, getPointerToWord(sep, 3));
-            printSymbols(symbols);
             /* calculate the relative address */
             immed = symbolNode->address - oprNode->address;
             /* set first param as rs */

@@ -1,0 +1,13 @@
+
+/* register */
+ check register is value from 0-31
+
+/* memory - addresses */
+ memory adress can't pass 33554431 (2^25 - 1)
+   -> check on J operetions
+ 
+/* operetion */
+ -operetions must be only with little letters
+ -not valid immed that calculated more that 16 bits (page 34)
+ -operetions beq... can't be with symbol that defined as external
+ -if value of jmp is register it sould be valid register

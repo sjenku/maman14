@@ -71,7 +71,6 @@ int createExtFileFrom(extList *extL, char *filename)
     char *fname;
     extNode *tmpNode;
 
-    logger(D, "before guaed => %s", filename);
     /* guard */
     if (extL == NULL || extL->head_p == NULL || filename == NULL)
         return FAILURE;

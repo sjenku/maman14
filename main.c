@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
     symbolsList *symbolsList;
     objList *objectList;
     extList *extL;
+    errors *errorsList;
 
     loggerOn(I);
     loggerOn(D);
@@ -33,6 +34,7 @@ int main(int argc, char *argv[])
     symbolsList = getSymbolsList();
     objectList = getObjectList();
     extL = getExtList();
+    errorsList = getErrorList();
     runEngine(argc, argv);
 
     printDataSeg(dataSeg);
@@ -42,6 +44,7 @@ int main(int argc, char *argv[])
     destroyOperetionSeg(oprSeg);
     destroyObjList(objectList);
     destroyExternalsList(extL);
+    destroyErrorsList(errorsList);
     check_leaks();
 
     return 0;
@@ -50,3 +53,34 @@ int main(int argc, char *argv[])
 // loggerOn(D);
 // loggerOn(I);
 // logger(D, "str %s", binaryToHex("0110000101000010", 0));
+
+/*
+    dataSeg *dataSeg;
+    operetionSeg *oprSeg;
+    symbolsList *symbolsList;
+    objList *objectList;
+    extList *extL;
+    errors *errorsList;
+
+    loggerOn(I);
+    loggerOn(D);
+    loggerOn(E);
+
+    dataSeg = getDataSegment();
+    oprSeg = getOperetionSegment();
+    symbolsList = getSymbolsList();
+    objectList = getObjectList();
+    extL = getExtList();
+    errorsList = getErrorList();
+    runEngine(argc, argv);
+
+    printDataSeg(dataSeg);
+    printSymbols(symbolsList);
+    destroyDataSeg(dataSeg);
+    destroySymbolsList(symbolsList);
+    destroyOperetionSeg(oprSeg);
+    destroyObjList(objectList);
+    destroyExternalsList(extL);
+    destroyErrorsList(errorsList);
+    check_leaks();
+*/

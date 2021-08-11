@@ -102,15 +102,18 @@ int appendWord(seperator *seperator, char *word)
 {
     seperatorNode *newNode;
     seperatorNode *node_p;
+    int lengthWord;
     /* Wrong Input */
     if (seperator == NULL || word == NULL)
         return FAILURE;
 
     /* Create New Node */
     newNode = (seperatorNode *)malloc(sizeof(newNode));
-    newNode->word = (char *)malloc(strlen(word));
+    lengthWord = strlen(word);
+    newNode->word = (char *)malloc(lengthWord + 1); /* +1 stends for null char */
     newNode->next = NULL;
     strcpy(newNode->word, word);
+    *(newNode->word + lengthWord) = '\0';
 
     /* Handle First Word Inserted */
     if (seperator->head_p == NULL)

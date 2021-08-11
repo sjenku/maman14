@@ -1,10 +1,14 @@
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "headers/tools.h"
 #include "headers/symbolList.h"
+#include "headers/errors.h"
 
 #define ERR_1 1001
 #define ERR_2 1002
+#define ERR_3 1003
+#define ERR_4 1004
 
 /* Private Methods */
 
@@ -13,12 +17,19 @@ int removeFirstSymbol(symbolsList *symbols);
 /* Public Methods */
 char *symbolErrorReason(int errorStatus)
 {
-    if (errorStatus == ERR_1)
-        return "can't appear ':' in the middle of the symbol's name";
-    else if (errorStatus == ERR_2)
+    switch (errorStatus)
+    {
+    case ERR_1:
+        return "the symbol must contain numbers or alphabetic letters";
+    case ERR_2:
         return "the symbol have to finish with ':'";
-    else
+    case ERR_3:
+        return "the symbol can't be longer then 31 letters";
+    case ERR_4:
+        return "the symbol have to start with alphabetic letter";
+    default:
         return "undefined";
+    }
 }
 
 int isSymbolExist(symbolsList *symbols, char *symbolName)
@@ -65,11 +76,21 @@ int isValidSymbolName(char *str)
         return FAILURE;
 
     length = strlen(str);
-    /* check if ends with ':' and there is no ':' in the middle of the string */
-    for (ch = str, i = 0; (*ch) != '\0'; ch++, i++)
+    /* check valid length */
+    if (length > MAX_SYMBOLE_LENGTH + 1)
+        return ERR_3;
+
+    /* check the first letter */
+    ch = str;
+    if (!isalpha(*ch))
+        return ERR_4;
+    ch++;
+
+    /* check if ends with ':' and there is no invalid in the middle of the string */
+    for (i = 1; (*ch) != '\0'; ch++, i++)
     {
-        /* case the ':' is not the last char */
-        if ((*ch) == ':' && i != length - 1)
+        /* case is not a number or alphabetic char in the middle of the symbol */
+        if ((!isnumber(*ch) && !isalpha(*ch)) && i != length - 1)
             return ERR_1;
         else if ((*ch) == ':' && i == length - 1)
             return SUCCESS;

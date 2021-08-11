@@ -1,11 +1,12 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
-
 typedef struct error
 {
-    int status;
     char *info;
+    char *filename;
+    char *errorTrigger;
+    int lineNumber;
     struct error *next;
 
 } error;
@@ -16,10 +17,14 @@ typedef struct errors
 } errors;
 
 errors *initErrorsList();
-int insertErrorTo(errors *errors, int status, char *info);
 int printErrors(errors *errors);
-int destroyFirstError(errors *errors);
-int destroyAllErrors(errors *errors);
+int insertErrorTo(errors *errors, char *filename, int lineNumber, char *errorTriger, char *info);
+int removeFirstError(errors *errors);
+int removeAllErrors(errors *errors);
 int destroyErrorsList(errors *errors);
-
+int isEmptyErrorList(errors *errors);
+/*
+char *getErrorInfo(int errorNumber);
+*/
+errors *getErrorList();
 #endif

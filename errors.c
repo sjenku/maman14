@@ -4,32 +4,50 @@
 #include "headers/tools.h"
 
 /* Private */
-error *newError(int status, char *info);
+error *newError(char *filename, int lineNumber, char *errorTrigger, char *info);
 
 /* Public Methods Implementation */
-error *newError(int status, char *info)
+error *newError(char *filename, int lineNumber, char *errorTrigger, char *info)
 {
 
     /* variables */
     error *err;
     int strLength;
 
-    /* guard */
-    if (info == NULL)
-        return NULL;
-
     /* allocate memory for 'error' */
     strLength = strlen(info);
     err = (error *)malloc(sizeof(error));
+    /* allocate memory for info */
     err->info = (char *)malloc(strLength + 1);
-
     /* insert the info */
-    err->status = status;
-    err->next = NULL;
     strcpy(err->info, info);
-
     /* set the last char to be null char */
     *(err->info + strLength) = '\0';
+
+    /* allocate memory for filename */
+    strLength = strlen(filename);
+    err->filename = (char *)malloc(strLength + 1);
+    /* insert the filename */
+    strcpy(err->filename, filename);
+    *(err->filename + strLength) = '\0';
+
+    /* this the only value that allowed to be NULL */
+    if (errorTrigger != NULL)
+    {
+        /*allocate memory for errorTriger */
+        strLength = strlen(errorTrigger);
+        err->errorTrigger = (char *)malloc(strLength + 1);
+        /* insert the error trigger */
+        strcpy(err->errorTrigger, errorTrigger);
+        *(err->errorTrigger + strLength) = '\0';
+    }
+    else
+    {
+        err->errorTrigger = NULL;
+    }
+    /* set next */
+    err->next = NULL;
+    err->lineNumber = lineNumber;
 
     return err;
 }
@@ -51,22 +69,30 @@ int printErrors(errors *errors)
     tmpNode = errors->head_p;
     while (tmpNode != NULL)
     {
-        logger(E, tmpNode->info);
+        logger(E, "[Filename]:%s,[Line]:%d,[ErrorReason]:%s,[Info]:%s", tmpNode->filename, tmpNode->lineNumber, tmpNode->errorTrigger, tmpNode->info);
         tmpNode = tmpNode->next;
     }
     return SUCCESS;
 }
 
-int insertErrorTo(errors *errors, int status, char *info)
+int isEmptyErrorList(errors *errors)
+{
+    if (errors == NULL || errors->head_p == NULL)
+        return SUCCESS;
+    else
+        return FAILURE;
+}
+
+int insertErrorTo(errors *errors, char *filename, int lineNumber, char *errorTrigger, char *info)
 {
     error *tmpErr;
-    if (errors == NULL || info == NULL)
+    if (errors == NULL || info == NULL || filename == NULL)
         return FAILURE;
 
     /* empty errors list - insert to the head of the list */
     if (errors->head_p == NULL)
     {
-        errors->head_p = newError(status, info);
+        errors->head_p = newError(filename, lineNumber, errorTrigger, info);
     }
     /* list of errors not empty */
     else
@@ -76,12 +102,12 @@ int insertErrorTo(errors *errors, int status, char *info)
         {
             tmpErr = tmpErr->next;
         }
-        tmpErr->next = newError(status, info);
+        tmpErr->next = newError(filename, lineNumber, errorTrigger, info);
     }
     return SUCCESS;
 }
 
-int destroyFirstError(errors *errors)
+int removeFirstError(errors *errors)
 {
     error *temp;
     /*checking if errors list isn't empty*/
@@ -93,19 +119,22 @@ int destroyFirstError(errors *errors)
     /*move the head to the next element*/
     errors->head_p = errors->head_p->next;
 
-    /*return to the client the node been removed from the queue*/
+    /* free memory */
     free(temp->info);
+    free(temp->filename);
+    if (temp->errorTrigger != NULL) /* error triger can be null */
+        free(temp->errorTrigger);
     free(temp);
     return SUCCESS;
 }
 
 /*This method delete all the elements from the errors list*/
-int destroyAllErrors(errors *errors)
+int removeAllErrors(errors *errors)
 {
     if (errors == NULL)
         return FAILURE;
 
-    while (destroyFirstError(errors))
+    while (removeFirstError(errors))
         ;
 
     return SUCCESS;
@@ -116,7 +145,31 @@ int destroyErrorsList(errors *errors)
 {
     if (errors == NULL)
         return FAILURE;
-    destroyAllErrors(errors);
+    removeAllErrors(errors);
     free(errors);
     return SUCCESS;
 }
+
+errors *getErrorList()
+{
+    static errors *errList;
+    if (errList == NULL)
+    {
+        errList = initErrorsList();
+    }
+    return errList;
+}
+/*
+char *getErrorInfo(int errorNumber)
+{
+    switch (errorNumber)
+    {
+    case ERR_SYMBOL_1:
+        return "can't duplicate symbols";
+    case ERR_SYMBOL_2:
+        return "not valid symbol";
+    default:
+        return "";
+    }
+}
+*/
