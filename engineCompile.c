@@ -159,6 +159,11 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
             else
                 insertErrorTo(errorsList, filename, lineNumber, restLine, operetionErrorReason(status_response));
         }
+        /* undefiend value */
+        else if (!isEntry(currentWord))
+        {
+            insertErrorTo(errorsList, filename, lineNumber, currentWord, "it's undefiend value");
+        }
         /* free memory */
         if (restLine != NULL)
             free(restLine);
@@ -171,17 +176,18 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
 void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
 {
     char *firstWord, *currentWord, *symbolName;
-    seperator *seperator;
+    seperator *seperator, *seperatorValue;
     operetionSeg *operetionSeg;
     operetionNode *tmpOperetionNode;
     operetionInfo *tmpOperetionInfo;
     symbolsList *symbolList;
     symbolListNode *tmpSymbolListNode;
+    errors *errorsList;
     extList *externalsList;
     objList *objectList;
-    int wordIndex;
+    int wordIndex, operetionIndex;
     /* set index that indicates which operetion to get from operetion segment */
-    int operetionIndex = 0;
+    operetionIndex = 0;
     /* create seperator that is seperating the line into individuals words */
     seperator = initSeprator();
     appendStringWithSpace(seperator, line);
@@ -189,6 +195,8 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
     symbolList = getSymbolsList();
     /* set initial val for tmpSymbolListNode that would point to the symbol from symbol list */
     tmpSymbolListNode = NULL;
+    /* get pointer to errors list to hold errors if accured */
+    errorsList = getErrorList();
     /* get the pointer to the saved operetions from the first workflow */
     operetionSeg = getOperetionSegment();
     /* set index to know on witch word we looking at */
@@ -212,13 +220,26 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
         }
         else
         {
+            /* entry case */
             if (isEntry(currentWord))
             {
+                /* check if symbol exist */
                 symbolName = getPointerToWord(seperator, wordIndex + 1);
-                changeAttribute(symbolList, symbolName, ATTRIBUTE_DATA_ENTRY);
+                tmpSymbolListNode = getPointerToSymbol(symbolList, symbolName);
+                /* symbol not exist,insert error */
+                if (tmpSymbolListNode == NULL)
+                {
+                    /* it's mean symbol not exist in symbol list ,insert error */
+                    insertErrorTo(errorsList, filename, lineNumber, symbolName, "can't set as entry,this symbol not exist for directive");
+                }
+                /* it's passed the restrictions,change to attribute entry  */
+                else
+                {
+                    changeAttribute(symbolList, symbolName, ATTRIBUTE_DATA_ENTRY);
+                }
             }
-            /* it's operetion , code it to binary and print it*/
-            else
+            /* case it's operetion */
+            else if (isValidOperationName(currentWord))
             {
                 /* case that is external val */
                 /* get the node for current operetion in line*/
@@ -226,23 +247,55 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
                 /* guard */
                 if (tmpOperetionNode == NULL)
                     goto END;
-                /* check if it's J type */
+                /* check if it's J type and it's not stop operetion*/
                 tmpOperetionInfo = getOperetionInfo(tmpOperetionNode->name);
-                if (tmpOperetionInfo->type == 'J')
+                if (tmpOperetionInfo->type == 'J' && tmpOperetionInfo->opcode != STOP_OPERETION_OPCODE)
                 {
-                    /* get the symbol node that mentioned as value */
                     tmpSymbolListNode = getPointerToSymbol(symbolList, getPointerToWord(seperator, wordIndex + 1));
                     /* check if this valid symbol and it's exist in the symbol list */
                     if (tmpSymbolListNode != NULL)
                     {
-                        /* save the external symbol with the relative address for creating later .ext file*/
-                        externalsList = getExtList();
-                        insertExtTo(externalsList, tmpSymbolListNode->name, tmpOperetionNode->address - IC_INCREASER);
+                        /* check if it's symbol with attribute external if it is insert to externals list */
+                        if (strcmp(tmpSymbolListNode->attribute, ATTRIBUTE_EXTERNAL) == 0)
+                        {
+                            externalsList = getExtList();
+                            insertExtTo(externalsList, tmpSymbolListNode->name, tmpOperetionNode->address);
+                        }
+                    }
+                    /*  symbol not exist */
+                    else
+                    {
+                        /* if it's not register then insert error,beacuse for command like 'jmp' register is valid */
+                        if (isRegister(getPointerToWord(seperator, wordIndex + 1)) == REG_FAILURE)
+                        {
+                            insertErrorTo(errorsList, filename, lineNumber, tmpOperetionNode->name, "mentioned not valid symbol for this operetion");
+                        }
                     }
                 }
-                /* then check if the next word is external symbol */
-                objectList = getObjectList();
-                codeOperetionToBinary(objectList, tmpOperetionNode);
+                /* for bne | beq | blt | bgt operetions ,check if symbol defined as external, if it does insert error */
+                else if (tmpOperetionInfo->opcode >= BNE_OPERETION_OPCODE &&
+                         tmpOperetionInfo->opcode <= BGT_OPERETION_OPCODE)
+                {
+                    /* first retrieve the third value that should contain symbol name */
+                    seperatorValue = initSeprator();
+                    /* append to seperatorValue, the value of this command */
+                    appendStringWithComma(seperatorValue, getPointerToWord(seperator, wordIndex + 1));
+                    /* retrieve the symbol from 3 param after comma e.g $2,$3,LABEL => LABEL */
+                    tmpSymbolListNode = getPointerToSymbol(symbolList, getPointerToWord(seperatorValue, 3));
+                    /* check if symbol exist and it's mentioned with attribute external if it does insert error */
+                    if (tmpSymbolListNode != NULL && strcmp(tmpSymbolListNode->attribute, ATTRIBUTE_EXTERNAL) == 0)
+                    {
+                        insertErrorTo(errorsList, filename, lineNumber, tmpSymbolListNode->name, "this command can't use external symbol");
+                    }
+                    /* free memory */
+                    destroySeperator(seperatorValue);
+                }
+                if (isEmptyErrorList(errorsList))
+                {
+                    /* then check if the next word is external symbol */
+                    objectList = getObjectList();
+                    codeOperetionToBinary(objectList, tmpOperetionNode);
+                }
                 /* this operetion no more relevant,delete from list */
                 removeFirstOperetion(operetionSeg);
             }
@@ -291,18 +344,22 @@ void runEngine(int argc, char *argv[])
             /* Start Second Workflow */
             rulesFunc = engineWorkFlowForLineSecond;
             runRulessOnLinesOfFile(filename, rulesFunc);
-            /* Insert All Directives binary to objectListCreator */
-            insertDataSegmentToObjectList(dataSeg, objectList);
+            /* print errors if accured after second workflow */
+            printErrors(errorsList);
+            /* check if after second workflow not created new errors,if errors accured don't continue */
+            if (isEmptyErrorList(errorsList))
+            {
+                /* Insert All Directives binary to objectListCreator */
+                insertDataSegmentToObjectList(dataSeg, objectList);
 
-            /* create .ob file */
-            createObjDataToFile(objectList, ICF - INITIAL_ADDRESS, DCF, filename);
-            /* create .ent file */
-            createEntFile(filename);
-            /* create .ext file */
-            printExternals(extList);
-            createExtFileFrom(extList, filename);
+                /* create .ob file */
+                createObjDataToFile(objectList, ICF - INITIAL_ADDRESS, DCF, filename);
+                /* create .ent file */
+                createEntFile(filename);
+                /* create .ext file */
+                createExtFileFrom(extList, filename);
+            }
         }
-
         /* clear data holders for next file */
         removeAllOperetionsFrom(operetionSeg);
         removeAllSymbolsFrom(symbolsList);

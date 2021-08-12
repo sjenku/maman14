@@ -120,6 +120,9 @@ int isRegister(char *str)
     char *ch;
     int number, length, factor;
 
+    /* guard */
+    if (str == NULL)
+        return REG_FAILURE;
     /* initiate variables */
     ch = str;
     length = strlen(str);

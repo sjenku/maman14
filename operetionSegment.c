@@ -21,10 +21,10 @@ static operetionInfo validOperations[] = {
     {"andi", 'I', -1, 12},
     {"ori", 'I', -1, 13},
     {"nori", 'I', -1, 14},
-    {"bne", 'I', -1, 15},
+    {"bne", 'I', -1, BNE_OPERETION_OPCODE}, /* BNE_OPERETION_OPCODE = 15,can be used outside this file */
     {"beq", 'I', -1, 16},
     {"blt", 'I', -1, 17},
-    {"bgt", 'I', -1, 18},
+    {"bgt", 'I', -1, BGT_OPERETION_OPCODE}, /* BGT_OPERETION_OPCODE = 18,can be used outside this file  */
     {"lb", 'I', -1, 19},
     {"sb", 'I', -1, 20},
     {"lw", 'I', -1, 21},
@@ -34,7 +34,7 @@ static operetionInfo validOperations[] = {
     {"jmp", 'J', -1, 30},
     {"la", 'J', -1, 31},
     {"call", 'J', -1, 32},
-    {"stop", 'J', -1, 63}};
+    {"stop", 'J', -1, STOP_OPERETION_OPCODE}}; /* STOP_OPERETION_OPCODE = 63,can be used outside this file  */
 
 #define ERR_OPERETION_COMMA -100
 #define ERR_OPERETION_EMPTY -101
@@ -541,6 +541,9 @@ int isValidOperationName(const char *str)
 {
     int i;
     int length = totalOperations();
+    /* guard */
+    if (str == NULL)
+        return FAILURE;
     for (i = 0; i < length; i++)
     {
         if (strcmp(validOperations[i].name, str) == 0)

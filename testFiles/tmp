@@ -90,3 +90,29 @@ void readPrintLineFile(int argc, char *argv[])
         return FAILURE;
 
     return numOfDataElements;
+
+
+
+
+
+
+
+    /* get the symbol node that mentioned as value */
+                    tmpSymbolListNode = getPointerToSymbol(symbolList, getPointerToWord(seperator, wordIndex + 1));
+                    /* check if this valid symbol and it's exist in the symbol list */
+                    if (tmpSymbolListNode != NULL)
+                    {
+                        /* if it defiened as external insert to externals list */
+                        if (strcmp(tmpSymbolListNode->attribute, ATTRIBUTE_EXTERNAL))
+                        {
+                            /* save the external symbol with the relative address for creating later .ext file*/
+                            externalsList = getExtList();
+                            insertExtTo(externalsList, tmpSymbolListNode->name, tmpOperetionNode->address - IC_INCREASER);
+                        }
+                    }
+                    /* else the symbol not exist and it's not register, insert error */
+                    else if (isRegister(getPointerToWord(seperator, wordIndex + 1)) == REG_FAILURE)
+                    {
+                        insertErrorTo(errorsList, filename, lineNumber, getPointerToWord(seperator, wordIndex + 1), "the symbol not exist");
+                    }
+                    

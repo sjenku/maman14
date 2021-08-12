@@ -20,6 +20,10 @@
 #define J_CODE_REG_SIZE 1
 #define J_CODE_ADDRESS_SIZE 25
 
+#define STOP_OPERETION_OPCODE 63
+#define BNE_OPERETION_OPCODE 15
+#define BGT_OPERETION_OPCODE 18
+
 #include "objectCreator.h"
 
 typedef struct operetionR

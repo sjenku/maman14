@@ -40,6 +40,9 @@ dataSeg *initDataSegment()
 int isValidDirectiveName(const char *str)
 {
     int i;
+    /* guard */
+    if (str == NULL)
+        return FAILURE;
     for (i = 0; i < TOTAL_DIRECTIVE_WORDS; i++)
     {
         if (strcmp(directiveWords[i], str) == 0)
@@ -179,7 +182,7 @@ int isValidDirectiveValuesDbDhDw(const char *directiveType, char *str)
         }
     }
     destroySeperator(sep);
-    return SUCCESS;
+    return numberOfValues;
 }
 /* this function give the valid max positive or negative value capable to hold by this directive type */
 int maxValueNumber(const char *directiveType, int positive)
@@ -285,11 +288,17 @@ dataSeg *getDataSegment()
 
 int isEntry(char *str)
 {
+    /* guard */
+    if (str == NULL)
+        return FAILURE;
     return (strcmp(str, ".entry") == 0) ? SUCCESS : FAILURE;
 }
 
 int isExternal(char *str)
 {
+    /* guard */
+    if (str == NULL)
+        return FAILURE;
     return (strcmp(str, ".extern") == 0) ? SUCCESS : FAILURE;
 }
 
@@ -298,13 +307,11 @@ int insertDirectiveTo(dataSeg *seg, char *directiveName, char *value)
     /* variables */
     directiveNode *newNode;
     directiveNode *tmpNode;
-    int directiveNameLength, valLength;
+    int directiveNameLength, valLength, valSizeBytes;
 
     /* checking if the params valid */
     if (seg == NULL || directiveName == NULL || value == NULL)
         return FAILURE;
-
-    /* get the value size */
 
     /* creating new directiveNode for inserting it to list of dataSegment */
     newNode = (directiveNode *)malloc(sizeof(directiveNode));
@@ -323,7 +330,9 @@ int insertDirectiveTo(dataSeg *seg, char *directiveName, char *value)
 
     /* handle insertion of address */
     newNode->address = seg->DC;
-    seg->DC += sizeOfValueBytes(directiveName, value);
+    valSizeBytes = sizeOfValueBytes(directiveName, value);
+
+    seg->DC += valSizeBytes;
 
     /* set next pointer */
     newNode->next = NULL;
