@@ -113,7 +113,7 @@ int isNumbersOrLetters(char *str)
 }
 
 /* isRegister check if the value is valid register number and if it does
-it return number of the register otherwise it return FAILURE */
+it return number of the register otherwise it return REG_FAILURE that's equalant to -1 int */
 int isRegister(char *str)
 {
     /* variables */
@@ -131,7 +131,7 @@ int isRegister(char *str)
 
     /* check the first letter is '$' sign */
     if ((*ch) != '$')
-        return FAILURE;
+        return REG_FAILURE;
 
     /* if it's dollar sing go to else block */
     else
@@ -149,16 +149,16 @@ int isRegister(char *str)
         {
             /* check for each ch that it's a number */
             if (!isnumber(*ch))
-                return FAILURE;
+                return REG_FAILURE;
             ch--;
         }
 
         number = atoi(ch + 1);
-        /* register can be from 1 till 32 */
-        if (number >= 1 && number <= MAX_REGISTER)
+        /* register can be from 0 till 31 */
+        if (number >= 0 && number <= MAX_REGISTER)
             return number;
         else
-            return FAILURE;
+            return REG_FAILURE;
     }
 }
 

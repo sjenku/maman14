@@ -36,6 +36,17 @@ static operetionInfo validOperations[] = {
     {"call", 'J', -1, 32},
     {"stop", 'J', -1, 63}};
 
+#define ERR_OPERETION_COMMA -100
+#define ERR_OPERETION_EMPTY -101
+#define ERR_OPERETION_NOT_EXIST -102
+#define ERR_OPERETION_LOGIC_ARTH -103
+#define ERR_OPERETION_COPY -104
+#define ERR_OPERETION_REG_SIGN_REG -105
+#define ERR_OPERETION_REG_REG_SYMBOL -106
+#define ERR_OPERETION_REG_SIGN -107
+#define ERR_OPERETION_REG -108
+#define ERR_OPERETION_STOP -109
+
 /* Private */
 int totalOperations();
 int registerToInt(char *str);
@@ -44,6 +55,36 @@ int removeAllOperetionsFrom(operetionSeg *seg);
 int totalOperetionsInSeg(operetionSeg *seg);
 
 /* Public */
+
+char *operetionErrorReason(int statusError)
+{
+    switch (statusError)
+    {
+    case ERR_OPERETION_COMMA:
+        return "wrong comma use while declaring the value";
+    case ERR_OPERETION_EMPTY:
+        return "couldn't be empty value";
+    case ERR_OPERETION_NOT_EXIST:
+        return "not valid operetion name";
+    case ERR_OPERETION_LOGIC_ARTH:
+        return "logic arithmetic operetions must be with 3 registers";
+    case ERR_OPERETION_COPY:
+        return "copy operetions must be with 2 registers";
+    case ERR_OPERETION_REG_SIGN_REG:
+        return "need contain 3 values  [register , symbol ,register]";
+    case ERR_OPERETION_REG_REG_SYMBOL:
+        return "need contain 3 values [register, register , symbol]";
+    case ERR_OPERETION_REG_SIGN:
+        return "need contain 2 value [register, symbol]";
+    case ERR_OPERETION_REG:
+        return "need contain 1 value [register]";
+    case ERR_OPERETION_STOP:
+        return "need contain 0 values";
+
+    default:
+        return "undefiend";
+    }
+}
 
 /* the size for codedString have to be 'CODE_BUFFER_SIZE' + 1 to hold null char */
 int operetionRToCode(int opcode, int funct, int rd, int rt, int rs, char **codedString)
@@ -168,28 +209,41 @@ int operetionJToCode(int opcode, int reg, int address, char **codedString)
 int isValidOperetionValue(const char *operetionName, char *values)
 {
     seperator *sep;
-    int i, numberOfValues, success;
+    int i, numberOfValues, success, itsStopOperetion, status_response;
     int length;
     /* guard */
-    if (operetionName == NULL || values == NULL)
+    if (operetionName == NULL)
         return FAILURE;
+    /* check if it's stop operetion */
+    itsStopOperetion = strcmp(operetionName, "stop") == 0 ? TRUE : FALSE;
+    /* check if empty value and it's not stop command */
+    if (values == NULL && !itsStopOperetion)
+        return ERR_OPERETION_EMPTY;
 
     /* initial values */
     length = totalOperations();
     sep = initSeprator();
+    status_response = FAILURE; /* status response it's a status that would return to client */
 
     /* when seperate with comma it's check that is no double comma and comma and begining and
     in the end */
     success = appendStringWithComma(sep, values);
-    if (!success)
-        return FAILURE;
+    if (!success && !itsStopOperetion)
+    {
+        destroySeperator(sep);
+        return ERR_OPERETION_COMMA;
+    }
 
     numberOfValues = numberOfWords(sep);
+
     for (i = 0; (i < length) && strcmp(validOperations[i].name, operetionName) != 0; i++)
         ;
     /* not found the operetion name in presaved operetion names */
     if (i == length)
-        return FAILURE;
+    {
+        destroySeperator(sep);
+        return ERR_OPERETION_NOT_EXIST;
+    }
 
     switch (i)
     { /* logic arithmetic R operetions */
@@ -199,23 +253,23 @@ int isValidOperetionValue(const char *operetionName, char *values)
     case 3:
     case 4:
         if (numberOfValues != 3 ||
-            !isRegister(getPointerToWord(sep, 1)) ||
-            !isRegister(getPointerToWord(sep, 2)) ||
-            !isRegister(getPointerToWord(sep, 3)))
-            return FAILURE;
+            isRegister(getPointerToWord(sep, 1)) == REG_FAILURE ||
+            isRegister(getPointerToWord(sep, 2)) == REG_FAILURE ||
+            isRegister(getPointerToWord(sep, 3)) == REG_FAILURE)
+            status_response = ERR_OPERETION_LOGIC_ARTH;
         else
-            return SUCCESS;
+            status_response = SUCCESS;
         break;
         /* copy operetions */
     case 5:
     case 6:
     case 7:
         if (numberOfValues != 2 ||
-            !isRegister(getPointerToWord(sep, 1)) ||
-            !isRegister(getPointerToWord(sep, 2)))
-            return FAILURE;
+            isRegister(getPointerToWord(sep, 1)) == REG_FAILURE ||
+            isRegister(getPointerToWord(sep, 2)) == REG_FAILURE)
+            status_response = ERR_OPERETION_COPY;
         else
-            return SUCCESS;
+            status_response = SUCCESS;
         break;
         /*logic arithmetic I */
     case 8:
@@ -224,12 +278,12 @@ int isValidOperetionValue(const char *operetionName, char *values)
     case 11:
     case 12:
         if (numberOfValues != 3 ||
-            !isRegister(getPointerToWord(sep, 1)) ||
+            isRegister(getPointerToWord(sep, 1)) == REG_FAILURE ||
             !isSignNumberOrNumber(getPointerToWord(sep, 2)) ||
-            !isRegister(getPointerToWord(sep, 3)))
-            return FAILURE;
+            isRegister(getPointerToWord(sep, 3)) == REG_FAILURE)
+            status_response = ERR_OPERETION_REG_SIGN_REG;
         else
-            return SUCCESS;
+            status_response = SUCCESS;
         break;
         /* conditional brancing */
     case 13:
@@ -237,12 +291,12 @@ int isValidOperetionValue(const char *operetionName, char *values)
     case 15:
     case 16:
         if (numberOfValues != 3 ||
-            !isRegister(getPointerToWord(sep, 1)) ||
-            !isRegister(getPointerToWord(sep, 2)) ||
+            isRegister(getPointerToWord(sep, 1)) == REG_FAILURE ||
+            isRegister(getPointerToWord(sep, 2)) == REG_FAILURE ||
             !isNumbersOrLetters(getPointerToWord(sep, 3)))
-            return FAILURE;
+            status_response = ERR_OPERETION_REG_REG_SYMBOL;
         else
-            return SUCCESS;
+            status_response = SUCCESS;
         break;
     /* save to memory operetions */
     case 17:
@@ -252,40 +306,41 @@ int isValidOperetionValue(const char *operetionName, char *values)
     case 21:
     case 22:
         if (numberOfValues != 3 ||
-            !isRegister(getPointerToWord(sep, 1)) ||
+            isRegister(getPointerToWord(sep, 1)) == REG_FAILURE ||
             !isSignNumberOrNumber(getPointerToWord(sep, 2)) ||
-            !isRegister(getPointerToWord(sep, 3)))
-            return FAILURE;
+            isRegister(getPointerToWord(sep, 3)) == REG_FAILURE)
+            status_response = ERR_OPERETION_REG_SIGN_REG;
         else
-            return SUCCESS;
+            status_response = SUCCESS;
         break;
     /* jmp command */
     case 23:
         if (numberOfValues != 1 ||
-            (!isRegister(getPointerToWord(sep, 1)) &&
+            (isRegister(getPointerToWord(sep, 1)) == REG_FAILURE &&
              !isNumbersOrLetters(getPointerToWord(sep, 1))))
-            return FAILURE;
+            status_response = ERR_OPERETION_REG_SIGN;
         else
-            return SUCCESS;
+            status_response = SUCCESS;
         break;
     /* la command & call command */
     case 24:
     case 25:
         if (numberOfValues != 1 ||
             !isNumbersOrLetters(getPointerToWord(sep, 1)))
-            return FAILURE;
+            status_response = ERR_OPERETION_REG;
         else
-            return SUCCESS;
+            status_response = SUCCESS;
         break;
     /* stop command */
     case 26:
         if (numberOfValues != 0)
-            return FAILURE;
+            status_response = ERR_OPERETION_STOP;
         else
-            return SUCCESS;
+            status_response = SUCCESS;
         break;
     }
-    return FAILURE;
+    destroySeperator(sep);
+    return status_response;
 }
 
 /* this method code the operetion saved in operetion segment to binary.
@@ -375,7 +430,7 @@ int codeOperetionToBinary(objList *objL, operetionNode *oprNode)
         if (oprInfo->opcode == 30)
         {
             /* set reg */
-            reg = isRegister(getPointerToWord(sep, 1)) ? 1 : 0;
+            reg = isRegister(getPointerToWord(sep, 1)) != REG_FAILURE ? 1 : 0;
             /* set address ,if it's not register get address of the symbol*/
             if (reg == 0)
             {

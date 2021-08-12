@@ -24,6 +24,7 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
     /* variables */
     seperator *seperator;
     symbolsList *symbolsList;
+    symbolListNode *tmpSymbolNode;
     operetionSeg *operetionSeg;
     errors *errorsList;
     dataSeg *dataSeg;
@@ -117,18 +118,46 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
                 tmpWord[length - 2] = ':';
                 tmpWord[length - 1] = '\0';
                 /* check if it's valid symbol name and there is no more symbols with same name*/
-                if (isValidSymbolName(tmpWord) && !isSymbolExist(symbolsList, tmpWord))
-                    insertSymbol(symbolsList, tmpWord, 0, ATTRIBUTE_EXTERNAL);
+                status_response = isValidSymbolName(tmpWord);
+                if (status_response == SUCCESS)
+                {
+                    /* if symbol not exist add to the list of symbols with attribute .external */
+                    if (!isSymbolExist(symbolsList, tmpWord))
+                    {
+                        insertSymbol(symbolsList, tmpWord, 0, ATTRIBUTE_EXTERNAL);
+                    }
+                    /* else symbol exist, check if the symbol is  with diffrent attribute then external */
+                    else
+                    {
+                        tmpSymbolNode = getPointerToSymbol(symbolsList, tmpWord);
+                        /* if exist with diffrent attribute then .external insert error */
+                        if (strcmp(tmpSymbolNode->attribute, ATTRIBUTE_EXTERNAL) != 0)
+                            insertErrorTo(errorsList, filename, lineNumber, tmpWord, "this symbol can't be as external,it's already exist for directive or operetion");
+                    }
+                }
+                /* it's not valid symbol name */
+                else
+                {
+                    insertErrorTo(errorsList, filename, lineNumber, tmpWord, symbolErrorReason(status_response));
+                }
                 free(tmpWord);
             }
         }
+        /* case operetion command */
         else if (isValidOperationName(currentWord))
         {
+            /* if symbol mentioned in first word then insert to symbol list */
             if (flagSymbol == TRUE)
             {
                 insertSymbol(symbolsList, firstWord, operetionSeg->IC, ATTRIBUTE_CODE);
             }
-            insertOperetionTo(operetionSeg, currentWord, restLine);
+            /* check if the value is valid ,if valid insert operetion to operetion segment,
+                if not insert error to errors list */
+            status_response = isValidOperetionValue(currentWord, restLine);
+            if (status_response == SUCCESS)
+                insertOperetionTo(operetionSeg, currentWord, restLine);
+            else
+                insertErrorTo(errorsList, filename, lineNumber, restLine, operetionErrorReason(status_response));
         }
         /* free memory */
         if (restLine != NULL)
@@ -167,7 +196,6 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
     /* set pointer to the first word */
     firstWord = getPointerToWord(seperator, 1);
     currentWord = getPointerToWord(seperator, wordIndex);
-
     /* if first word is NULL it's mean there was an empty line */
     if (currentWord != NULL && !isComment(currentWord))
     {
@@ -177,7 +205,7 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
             wordIndex++;
             currentWord = getPointerToWord(seperator, wordIndex);
         }
-        /* if it's directive code to binary */
+        /* if it's directive ignore rest of line */
         if (isValidDirectiveName(currentWord))
         {
             goto END;
@@ -260,11 +288,9 @@ void runEngine(int argc, char *argv[])
             DCF = dataSeg->DC;
             moveAddressDataSeg(dataSeg, ICF);
             moveAddressDataTypeSymbolsList(symbolsList, ICF);
-
             /* Start Second Workflow */
             rulesFunc = engineWorkFlowForLineSecond;
             runRulessOnLinesOfFile(filename, rulesFunc);
-
             /* Insert All Directives binary to objectListCreator */
             insertDataSegmentToObjectList(dataSeg, objectList);
 

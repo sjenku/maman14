@@ -16,8 +16,12 @@ int appendStringWithComma(seperator *seperator, char *str)
     char *ch;
     int i, charCounter, indexLastComma;
     int totalChars, commaFlag;
-    totalChars = strlen(str);
 
+    /* guard */
+    if (seperator == NULL || str == NULL)
+        return FAILURE;
+
+    totalChars = strlen(str);
     commaFlag = TRUE;
     /* Seperate the words */
     for (ch = str, i = 0, charCounter = 0; i < totalChars + 1; ch++, i++)

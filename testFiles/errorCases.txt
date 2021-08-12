@@ -13,3 +13,15 @@
  -not valid immed that calculated more that 16 bits (page 34)
  -operetions beq... can't be with symbol that defined as external
  -if value of jmp is register it sould be valid register
+
+
+
+ #segment fall *****
+ when extern define with symbol name and this symbol not exist in command call...
+ it throw error
+
+
+
+
+TODO: in symbol list remove headers->operetion.h and dataSegment.h, and create 
+header file with all preserved words 

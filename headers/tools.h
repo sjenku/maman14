@@ -3,10 +3,11 @@
 
 #define SUCCESS 1
 #define FAILURE 0
+#define REG_FAILURE -1
 #define TRUE 1
 #define FALSE 0
 #define TOTAL_LOGGER_TYPES 4
-#define MAX_REGISTER 32
+#define MAX_REGISTER 31
 
 static enum LoggerType { L,
                          I,

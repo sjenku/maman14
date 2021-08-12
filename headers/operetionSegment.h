@@ -62,6 +62,7 @@ int isSignNumberOrNumber(char *str);
 /*public*/
 operetionSeg *getOperetionSegment();
 operetionInfo *getOperetionInfo(char *operetionName);
+char *operetionErrorReason(int statusError);
 int codeOperetionToBinary(objList *objL, operetionNode *oprNode);
 int numberToBinary(int numValue, int sizeOfBits, char **codedString);
 int operetionRToCode(int opcode, int funct, int rd, int rt, int rs, char **codedString);

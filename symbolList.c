@@ -3,12 +3,15 @@
 #include <ctype.h>
 #include "headers/tools.h"
 #include "headers/symbolList.h"
+#include "headers/dataSegment.h"
+#include "headers/operetionSegment.h"
 #include "headers/errors.h"
 
 #define ERR_1 1001
 #define ERR_2 1002
 #define ERR_3 1003
 #define ERR_4 1004
+#define ERR_5 1005
 
 /* Private Methods */
 
@@ -27,6 +30,8 @@ char *symbolErrorReason(int errorStatus)
         return "the symbol can't be longer then 31 letters";
     case ERR_4:
         return "the symbol have to start with alphabetic letter";
+    case ERR_5:
+        return "symbol can't named as operetion name or directive name";
     default:
         return "undefined";
     }
@@ -69,7 +74,7 @@ int isSymbolExist(symbolsList *symbols, char *symbolName)
 int isValidSymbolName(char *str)
 {
     int length;
-    char *ch;
+    char *ch, *tmpSymbol;
     int i;
     /* not valid input */
     if (str == NULL)
@@ -92,8 +97,24 @@ int isValidSymbolName(char *str)
         /* case is not a number or alphabetic char in the middle of the symbol */
         if ((!isnumber(*ch) && !isalpha(*ch)) && i != length - 1)
             return ERR_1;
+        /* it's have correct symbol syntax */
         else if ((*ch) == ':' && i == length - 1)
-            return SUCCESS;
+        {
+            /* check if it's not directive or operetion name */
+            tmpSymbol = (char *)malloc(length);
+            stpncpy(tmpSymbol, str, length);
+            tmpSymbol[length - 1] = '\0';
+            if (isValidDirectiveName(tmpSymbol) || isValidOperationName(tmpSymbol))
+            {
+                free(tmpSymbol);
+                return ERR_5;
+            }
+            else
+            {
+                free(tmpSymbol);
+                return SUCCESS;
+            }
+        }
     }
 
     /* the symbol dosen't finished with ':' */

@@ -31,3 +31,62 @@ void readPrintLineFile(int argc, char *argv[])
     }
     free(string);
 }
+
+
+
+
+
+
+
+ numOfDataElements = 1;
+    if (str == NULL || strcmp(str, "") == 0)
+        return FAILURE;
+
+    ch = str;
+    while ((*ch) != '\0')
+    {
+        /* Space */
+        if (((*ch) == ' ' || (*ch) == '\t'))
+        {
+
+            if (prevCharNumber)
+                allowedNumber = FALSE;
+        }
+        /* Comma */
+        else if ((*ch) == ',' && allowedComma)
+        {
+
+            numOfDataElements++;
+            allowedComma = FALSE;
+            allowedNumber = TRUE;
+            prevCharNumber = FALSE;
+            allowedSign = TRUE;
+        }
+        /* Number */
+        else if ((*ch) >= '0' && (*ch) <= '9' && allowedNumber)
+        {
+            allowedComma = TRUE;
+            prevCharNumber = TRUE;
+            allowedSign = FALSE;
+        }
+        /* Sing */
+        else if (((*ch) == '-' || (*ch == '+')) && allowedSign)
+        {
+            allowedSign = FALSE;
+            allowedNumber = TRUE;
+            allowedComma = FALSE;
+            allowedSpace = FALSE;
+        }
+        else
+        {
+            return FAILURE;
+        }
+        ch++;
+    }
+
+    /*TODO: handle in for loop with strlen to insert it up*/
+    /*check if the last char is comma or sign*/
+    if ((*(ch - 1) == ',') || (*(ch - 1) == '-') || (*(ch - 1) == '+'))
+        return FAILURE;
+
+    return numOfDataElements;
