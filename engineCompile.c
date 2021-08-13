@@ -34,7 +34,6 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
     char *tmpWord;
     char *currentWord;
     char *restLine;
-
     /* set flag */
     flagSymbol = FALSE;
     /* set index to know on witch word we looking at */
@@ -129,7 +128,8 @@ void engineWorkFlowForLineFirst(char *line, int lineNumber, char *filename)
                     /* else symbol exist, check if the symbol is  with diffrent attribute then external */
                     else
                     {
-                        tmpSymbolNode = getPointerToSymbol(symbolsList, tmpWord);
+                        printSymbols(symbolsList);
+                        tmpSymbolNode = getPointerToSymbol(symbolsList, currentWord);
                         /* if exist with diffrent attribute then .external insert error */
                         if (strcmp(tmpSymbolNode->attribute, ATTRIBUTE_EXTERNAL) != 0)
                             insertErrorTo(errorsList, filename, lineNumber, tmpWord, "this symbol can't be as external,it's already exist for directive or operetion");
@@ -235,7 +235,15 @@ void engineWorkFlowForLineSecond(char *line, int lineNumber, char *filename)
                 /* it's passed the restrictions,change to attribute entry  */
                 else
                 {
-                    changeAttribute(symbolList, symbolName, ATTRIBUTE_DATA_ENTRY);
+                    /* check if it's not already setted as external */
+                    if (strcmp(tmpSymbolListNode->attribute, ATTRIBUTE_EXTERNAL) == 0)
+                    {
+                        insertErrorTo(errorsList, filename, lineNumber, tmpSymbolListNode->name, "it's already declared as external");
+                    }
+                    else
+                    {
+                        changeAttribute(symbolList, symbolName, ATTRIBUTE_DATA_ENTRY);
+                    }
                 }
             }
             /* case it's operetion */
